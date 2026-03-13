@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Список покупок</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+body{
+    font-family: Arial;
+    background: #f2f2f2;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+}
+
+input{
+    width:70%;
+    padding:10px;
+    font-size:16px;
+}
+
+button{
+    padding:10px 15px;
+    font-size:16px;
+}
+
+.item{
+    background:white;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🛒 Список покупок</h1>
+
+<input id="itemInput" placeholder="Добавить товар">
+<button onclick="addItem()">Добавить</button>
+
+<div id="list"></div>
+
+<script>
+
+let tg = window.Telegram.WebApp;
+tg.expand();
+
+let items = [];
+
+function addItem(){
+
+    let input = document.getElementById("itemInput");
+    let text = input.value;
+
+    if(text == "") return;
+
+    items.push(text);
+
+    input.value="";
+
+    render();
+}
+
+function render(){
+
+    let list = document.getElementById("list");
+    list.innerHTML="";
+
+    items.forEach((item,i)=>{
+
+        let div = document.createElement("div");
+        div.className="item";
+        div.innerText=item;
+
+        list.appendChild(div);
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>
