@@ -50,23 +50,21 @@ button{
 <script>
 
 let tg = window.Telegram.WebApp;
+
 tg.expand();
 
-let items = [];
+let user = tg.initDataUnsafe.user;
+let chat = tg.initDataUnsafe.chat;
 
-function addItem(){
+document.body.insertAdjacentHTML(
+  "beforeend",
+  "<p><b>User:</b> " + JSON.stringify(user) + "</p>"
+);
 
-    let input = document.getElementById("itemInput");
-    let text = input.value;
-
-    if(text == "") return;
-
-    items.push(text);
-
-    input.value="";
-
-    render();
-}
+document.body.insertAdjacentHTML(
+  "beforeend",
+  "<p><b>Chat:</b> " + JSON.stringify(chat) + "</p>"
+);
 
 function render(){
 
