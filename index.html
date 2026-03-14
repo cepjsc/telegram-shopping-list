@@ -4,84 +4,179 @@
 <meta charset="UTF-8">
 <title>Список покупок</title>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <style>
+
 body{
-    font-family: Arial;
-    background: #f2f2f2;
-    padding:20px;
+font-family: Arial;
+background:#f5f5f5;
+padding:20px;
 }
 
 h1{
-    text-align:center;
+text-align:center;
+}
+
+.inputBlock{
+display:flex;
+gap:10px;
+margin-bottom:20px;
 }
 
 input{
-    width:70%;
-    padding:10px;
-    font-size:16px;
+flex:1;
+padding:10px;
+font-size:16px;
 }
 
 button{
-    padding:10px 15px;
-    font-size:16px;
+padding:10px 15px;
+font-size:16px;
+cursor:pointer;
 }
 
-.item{
-    background:white;
-    padding:10px;
-    margin-top:10px;
-    border-radius:8px;
+ul{
+list-style:none;
+padding:0;
 }
+
+li{
+background:white;
+padding:10px;
+margin-bottom:8px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-radius:6px;
+}
+
+.done{
+text-decoration:line-through;
+color:gray;
+}
+
+.sectionTitle{
+margin-top:30px;
+font-weight:bold;
+}
+
 </style>
-
 </head>
 
 <body>
 
 <h1>🛒 Список покупок</h1>
 
+<div class="inputBlock">
+
 <input id="itemInput" placeholder="Добавить товар">
+
 <button onclick="addItem()">Добавить</button>
 
-<div id="list"></div>
+</div>
+
+<div class="sectionTitle">🧺 Нужно купить</div>
+
+<ul id="todoList"></ul>
+
+<div class="sectionTitle">✅ Куплено</div>
+
+<ul id="doneList"></ul>
 
 <script>
 
-let tg = window.Telegram.WebApp;
-
-tg.expand();
-
-let user = tg.initDataUnsafe.user;
-let chat = tg.initDataUnsafe.chat;
-
-document.body.insertAdjacentHTML(
-  "beforeend",
-  "<p><b>User:</b> " + JSON.stringify(user) + "</p>"
-);
-
-document.body.insertAdjacentHTML(
-  "beforeend",
-  "<p><b>Chat:</b> " + JSON.stringify(chat) + "</p>"
-);
+let todo=[]
+let done=[]
 
 function render(){
 
-    let list = document.getElementById("list");
-    list.innerHTML="";
+let todoList=document.getElementById("todoList")
+let doneList=document.getElementById("doneList")
 
-    items.forEach((item,i)=>{
+todoList.innerHTML=""
+doneList.innerHTML=""
 
-        let div = document.createElement("div");
-        div.className="item";
-        div.innerText=item;
+todo.forEach((item,index)=>{
 
-        list.appendChild(div);
+let li=document.createElement("li")
 
-    });
+li.innerHTML=
+`
+<span>${item}</span>
+
+<div>
+<button onclick="completeItem(${index})">✔</button>
+<button onclick="deleteItem(${index})">❌</button>
+</div>
+`
+
+todoList.appendChild(li)
+
+})
+
+done.forEach((item,index)=>{
+
+let li=document.createElement("li")
+
+li.className="done"
+
+li.innerHTML=
+`
+<span>${item}</span>
+
+<div>
+<button onclick="deleteDone(${index})">❌</button>
+</div>
+`
+
+doneList.appendChild(li)
+
+})
 
 }
+
+function addItem(){
+
+let input=document.getElementById("itemInput")
+
+let value=input.value.trim()
+
+if(value==="") return
+
+todo.push(value)
+
+input.value=""
+
+render()
+
+}
+
+function completeItem(index){
+
+done.push(todo[index])
+
+todo.splice(index,1)
+
+render()
+
+}
+
+function deleteItem(index){
+
+todo.splice(index,1)
+
+render()
+
+}
+
+function deleteDone(index){
+
+done.splice(index,1)
+
+render()
+
+}
+
+render()
 
 </script>
 
