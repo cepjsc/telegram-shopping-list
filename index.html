@@ -37,6 +37,11 @@ align-items:center;
 gap:10px;
 }
 
+.itemAmount{
+color:#555;
+font-size:14px;
+}
+
 .doneText{
 text-decoration:line-through;
 color:gray;
@@ -47,10 +52,9 @@ margin-top:30px;
 font-weight:bold;
 }
 
-/* FAB кнопка */
+/* FAB */
 
 .fab{
-
 position:fixed;
 bottom:25px;
 right:25px;
@@ -69,13 +73,11 @@ color:white;
 cursor:pointer;
 
 box-shadow:0 4px 10px rgba(0,0,0,0.3);
-
 }
 
-/* Модальное окно */
+/* MODAL */
 
 .modal{
-
 position:fixed;
 top:0;
 left:0;
@@ -89,7 +91,6 @@ display:none;
 
 align-items:center;
 justify-content:center;
-
 }
 
 .modalContent{
@@ -97,7 +98,8 @@ justify-content:center;
 background:white;
 padding:20px;
 border-radius:10px;
-width:250px;
+
+width:260px;
 
 display:flex;
 flex-direction:column;
@@ -105,7 +107,8 @@ gap:10px;
 
 }
 
-.modalContent input{
+.modalContent input,
+.modalContent select{
 
 padding:8px;
 font-size:16px;
@@ -126,24 +129,30 @@ padding:8px;
 <h1>🛒 Список покупок</h1>
 
 <div class="sectionTitle">🧺 Нужно купить</div>
-
 <ul id="todoList"></ul>
 
 <div class="sectionTitle">✅ Куплено</div>
-
 <ul id="doneList"></ul>
 
-<!-- Кнопка + -->
-
 <button class="fab" onclick="openModal()">+</button>
-
-<!-- Модальное окно -->
 
 <div class="modal" id="modal">
 
 <div class="modalContent">
 
-<input id="itemInput" placeholder="Название товара">
+<input id="nameInput" placeholder="Название товара">
+
+<input id="amountInput" type="number" placeholder="Количество">
+
+<select id="unitInput">
+
+<option value="шт">шт</option>
+<option value="кг">кг</option>
+<option value="г">г</option>
+<option value="л">л</option>
+<option value="уп">уп</option>
+
+</select>
 
 <button onclick="addItem()">OK</button>
 
@@ -176,11 +185,11 @@ li.innerHTML=`
 
 <input type="checkbox" onchange="completeItem(${index})">
 
-<span>${item}</span>
+<span>${item.name}</span>
 
 </div>
 
-<button onclick="deleteItem(${index})">❌</button>
+<span class="itemAmount">${item.amount} ${item.unit}</span>
 
 `
 
@@ -198,9 +207,11 @@ li.innerHTML=`
 
 <input type="checkbox" checked onchange="undoItem(${index})">
 
-<span class="doneText">${item}</span>
+<span class="doneText">${item.name}</span>
 
 </div>
+
+<span class="itemAmount">${item.amount} ${item.unit}</span>
 
 <button onclick="deleteDone(${index})">❌</button>
 
@@ -216,6 +227,12 @@ function openModal(){
 
 document.getElementById("modal").style.display="flex"
 
+setTimeout(()=>{
+
+document.getElementById("nameInput").focus()
+
+},100)
+
 }
 
 function closeModal(){
@@ -226,15 +243,20 @@ document.getElementById("modal").style.display="none"
 
 function addItem(){
 
-let input=document.getElementById("itemInput")
+let name=document.getElementById("nameInput").value.trim()
+let amount=document.getElementById("amountInput").value
+let unit=document.getElementById("unitInput").value
 
-let value=input.value.trim()
+if(name==="") return
 
-if(value==="") return
+todo.push({
+name:name,
+amount:amount,
+unit:unit
+})
 
-todo.push(value)
-
-input.value=""
+document.getElementById("nameInput").value=""
+document.getElementById("amountInput").value=""
 
 closeModal()
 
@@ -245,7 +267,6 @@ render()
 function completeItem(index){
 
 done.push(todo[index])
-
 todo.splice(index,1)
 
 render()
@@ -255,16 +276,7 @@ render()
 function undoItem(index){
 
 todo.push(done[index])
-
 done.splice(index,1)
-
-render()
-
-}
-
-function deleteItem(index){
-
-todo.splice(index,1)
 
 render()
 
