@@ -29,8 +29,8 @@ font-size:16px;
 }
 
 button{
-padding:10px 15px;
-font-size:16px;
+padding:8px 12px;
+font-size:14px;
 cursor:pointer;
 }
 
@@ -44,12 +44,18 @@ background:white;
 padding:10px;
 margin-bottom:8px;
 display:flex;
-justify-content:space-between;
 align-items:center;
+justify-content:space-between;
 border-radius:6px;
 }
 
-.done{
+.leftPart{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.doneText{
 text-decoration:line-through;
 color:gray;
 }
@@ -99,14 +105,18 @@ todo.forEach((item,index)=>{
 
 let li=document.createElement("li")
 
-li.innerHTML=
-`
+li.innerHTML=`
+
+<div class="leftPart">
+
+<input type="checkbox" onchange="completeItem(${index})">
+
 <span>${item}</span>
 
-<div>
-<button onclick="completeItem(${index})">✔</button>
-<button onclick="deleteItem(${index})">❌</button>
 </div>
+
+<button onclick="deleteItem(${index})">❌</button>
+
 `
 
 todoList.appendChild(li)
@@ -117,15 +127,18 @@ done.forEach((item,index)=>{
 
 let li=document.createElement("li")
 
-li.className="done"
+li.innerHTML=`
 
-li.innerHTML=
-`
-<span>${item}</span>
+<div class="leftPart">
 
-<div>
-<button onclick="deleteDone(${index})">❌</button>
+<input type="checkbox" checked onchange="undoItem(${index})">
+
+<span class="doneText">${item}</span>
+
 </div>
+
+<button onclick="deleteDone(${index})">❌</button>
+
 `
 
 doneList.appendChild(li)
@@ -155,6 +168,16 @@ function completeItem(index){
 done.push(todo[index])
 
 todo.splice(index,1)
+
+render()
+
+}
+
+function undoItem(index){
+
+todo.push(done[index])
+
+done.splice(index,1)
 
 render()
 
