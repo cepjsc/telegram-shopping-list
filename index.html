@@ -38,8 +38,14 @@ gap:10px;
 }
 
 .itemAmount{
-color:#555;
+display:flex;
+align-items:center;
+gap:6px;
 font-size:14px;
+}
+
+.itemAmount button{
+padding:2px 6px;
 }
 
 .doneText{
@@ -136,6 +142,8 @@ padding:8px;
 
 <button class="fab" onclick="openModal()">+</button>
 
+<!-- окно добавления товара -->
+
 <div class="modal" id="modal">
 
 <div class="modalContent">
@@ -155,8 +163,22 @@ padding:8px;
 </select>
 
 <button onclick="addItem()">OK</button>
-
 <button onclick="closeModal()">Отмена</button>
+
+</div>
+
+</div>
+
+<!-- окно изменения количества -->
+
+<div class="modal" id="amountModal">
+
+<div class="modalContent">
+
+<input id="amountEditInput" type="number">
+
+<button onclick="confirmAmount()">OK</button>
+<button onclick="closeAmountModal()">Отмена</button>
 
 </div>
 
@@ -166,6 +188,9 @@ padding:8px;
 
 let todo=[]
 let done=[]
+
+let editingIndex=null
+let editingList=null
 
 function render(){
 
@@ -189,110 +214,10 @@ li.innerHTML=`
 
 </div>
 
-<span class="itemAmount">${item.amount} ${item.unit}</span>
+<div class="itemAmount">
 
-`
+<button onclick="changeAmount(${index},'todo',-1)">-</button>
 
-todoList.appendChild(li)
+<span onclick="openAmountModal(${index},'todo')">${item.amount}</span>
 
-})
-
-done.forEach((item,index)=>{
-
-let li=document.createElement("li")
-
-li.innerHTML=`
-
-<div class="leftPart">
-
-<input type="checkbox" checked onchange="undoItem(${index})">
-
-<span class="doneText">${item.name}</span>
-
-</div>
-
-<span class="itemAmount">${item.amount} ${item.unit}</span>
-
-<button onclick="deleteDone(${index})">❌</button>
-
-`
-
-doneList.appendChild(li)
-
-})
-
-}
-
-function openModal(){
-
-document.getElementById("modal").style.display="flex"
-
-setTimeout(()=>{
-
-document.getElementById("nameInput").focus()
-
-},100)
-
-}
-
-function closeModal(){
-
-document.getElementById("modal").style.display="none"
-
-}
-
-function addItem(){
-
-let name=document.getElementById("nameInput").value.trim()
-let amount=document.getElementById("amountInput").value
-let unit=document.getElementById("unitInput").value
-
-if(name==="") return
-
-todo.push({
-name:name,
-amount:amount,
-unit:unit
-})
-
-document.getElementById("nameInput").value=""
-document.getElementById("amountInput").value=""
-
-closeModal()
-
-render()
-
-}
-
-function completeItem(index){
-
-done.push(todo[index])
-todo.splice(index,1)
-
-render()
-
-}
-
-function undoItem(index){
-
-todo.push(done[index])
-done.splice(index,1)
-
-render()
-
-}
-
-function deleteDone(index){
-
-done.splice(index,1)
-
-render()
-
-}
-
-render()
-
-</script>
-
-</body>
-</html>
+<button onclick="changeAmount(${index},'todo',1)">+</button>
