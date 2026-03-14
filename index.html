@@ -38,8 +38,15 @@ gap:10px;
 }
 
 .itemAmount{
+display:flex;
+align-items:center;
+gap:6px;
 color:#555;
 font-size:14px;
+}
+
+.itemAmount button{
+padding:2px 6px;
 }
 
 .doneText{
@@ -189,7 +196,17 @@ li.innerHTML=`
 
 </div>
 
-<span class="itemAmount">${item.amount} ${item.unit}</span>
+<span class="itemAmount">
+
+<button onclick="changeAmount(${index},'todo',-1)">-</button>
+
+<span onclick="editAmount(${index},'todo')">${item.amount}</span>
+
+<button onclick="changeAmount(${index},'todo',1)">+</button>
+
+${item.unit}
+
+</span>
 
 `
 
@@ -290,6 +307,34 @@ render()
 
 }
 
+function changeAmount(index,list,delta){
+
+let arr = list === "todo" ? todo : done
+
+arr[index].amount = Number(arr[index].amount) + delta
+
+if(arr[index].amount < 1) arr[index].amount = 1
+
+render()
+
+}
+
+function editAmount(index,list){
+
+let arr = list === "todo" ? todo : done
+
+let value = prompt("Введите количество", arr[index].amount)
+
+if(value !== null && value !== ""){
+
+arr[index].amount = Number(value)
+
+render()
+
+}
+
+}
+  
 render()
 
 </script>
