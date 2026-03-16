@@ -5,6 +5,7 @@
 <title>Список покупок</title>
 
 <style>
+
 body{
   font-family:Arial;
   background:#f5f5f5;
@@ -17,13 +18,13 @@ ul{list-style:none; padding:0;}
 
 li{
   background:white;
-  padding:18px 20px; /* больше внутреннего отступа */
-  margin-bottom:12px; /* чуть больше пространства между карточками */
+  padding:18px 20px;
+  margin-bottom:12px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  border-radius:12px; /* чуть более круглые края */
-  font-size:18px; /* увеличенный шрифт для текста */
+  border-radius:12px;
+  font-size:18px;
 }
 
 .leftPart{
@@ -40,13 +41,22 @@ li{
   font-size:14px;
 }
 
-.itemAmount button{padding:2px 6px;}
+.itemAmount button{
+  padding:4px 8px;
+}
 
-.doneText{ text-decoration:line-through; color:gray; }
+.doneText{
+  text-decoration:line-through;
+  color:gray;
+}
 
-.sectionTitle{ margin-top:30px; font-weight:bold; }
+.sectionTitle{
+  margin-top:30px;
+  font-weight:bold;
+}
 
-/* FAB */
+/* кнопка + */
+
 .fab{
   position:fixed;
   bottom:25px;
@@ -62,7 +72,8 @@ li{
   box-shadow:0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* MODAL */
+/* окно */
+
 .modal{
   position:fixed;
   top:0;
@@ -91,11 +102,12 @@ li{
   font-size:16px;
 }
 
-.modalContent button{ padding:8px; }
+.modalContent button{
+  padding:8px;
+}
 
 </style>
 
-<!-- Подключаем SortableJS правильно -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 </head>
@@ -112,11 +124,13 @@ li{
 
 <button class="fab" onclick="openModal()">+</button>
 
-<!-- окно добавления товара -->
 <div class="modal" id="modal">
   <div class="modalContent">
+
     <input id="nameInput" placeholder="Название товара">
+
     <input id="amountInput" type="number" placeholder="Количество">
+
     <select id="unitInput">
       <option value="шт">шт</option>
       <option value="кг">кг</option>
@@ -124,66 +138,79 @@ li{
       <option value="л">л</option>
       <option value="уп">уп</option>
     </select>
+
     <button onclick="addItem()">OK</button>
     <button onclick="closeModal()">Отмена</button>
+
   </div>
 </div>
 
 <script>
+
 const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec"
+
 let todo=[]
 let done=[]
-let lastData = "";
+let lastData=""
 
-async function loadData() {
-  try {
-    let res = await fetch(API_URL);
-    let text = await res.text();
+async function loadData(){
 
-    if (text !== lastData) {
-      lastData = text;
-      let data = JSON.parse(text);
-      todo = data.todo || [];
-      done = data.done || [];
-      render();
+  try{
+
+    let res = await fetch(API_URL)
+    let text = await res.text()
+
+    if(text !== lastData){
+
+      lastData = text
+
+      let data = JSON.parse(text)
+
+      todo = data.todo || []
+      done = data.done || []
+
+      render()
+
     }
 
-  } catch(e) {
-    console.log("Ошибка загрузки", e);
-  }
-}
-todo = data.todo || []
-done = data.done || []
+  }catch(e){
 
-render()
+    console.log("Ошибка загрузки",e)
+
+  }
 
 }
 
 async function saveData(){
 
-await fetch(API_URL,{
-method:"POST",
-body:JSON.stringify({
-todo:todo,
-done:done
-})
-})
+  await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      todo:todo,
+      done:done
+    })
+  })
 
 }
 
 function render(){
+
   let todoList=document.getElementById("todoList")
   let doneList=document.getElementById("doneList")
+
   todoList.innerHTML=""
   doneList.innerHTML=""
 
   todo.forEach((item,index)=>{
+
     let li=document.createElement("li")
+
     li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" onchange="completeItem(${index})">
         <span>${item.name}</span>
       </div>
+
       <span class="itemAmount">
         <button onclick="changeAmount(${index},'todo',-1)">-</button>
         <span onclick="editAmount(${index},'todo')">${item.amount}</span>
@@ -191,78 +218,155 @@ function render(){
         ${item.unit}
       </span>
     `
+
     todoList.appendChild(li)
+
   })
 
   done.forEach((item,index)=>{
+
     let li=document.createElement("li")
+
     li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" checked onchange="undoItem(${index})">
         <span class="doneText">${item.name}</span>
       </div>
+
       <span class="itemAmount">${item.amount} ${item.unit}</span>
+
       <button onclick="deleteDone(${index})">❌</button>
     `
+
     doneList.appendChild(li)
+
   })
+
 }
 
 function openModal(){
+
   document.getElementById("modal").style.display="flex"
-  setTimeout(()=>{ document.getElementById("nameInput").focus() },100)
+
+  setTimeout(()=>{
+    document.getElementById("nameInput").focus()
+  },100)
+
 }
-function closeModal(){ document.getElementById("modal").style.display="none" }
+
+function closeModal(){
+
+  document.getElementById("modal").style.display="none"
+
+}
 
 function addItem(){
+
   let name=document.getElementById("nameInput").value.trim()
   let amount=document.getElementById("amountInput").value
   let unit=document.getElementById("unitInput").value
+
   if(name==="") return
+
   if(amount==="") amount=1
-  todo.push({name:name, amount:Number(amount), unit:unit})
+
+  todo.push({
+    name:name,
+    amount:Number(amount),
+    unit:unit
+  })
+
   saveData()
+
   document.getElementById("nameInput").value=""
   document.getElementById("amountInput").value=""
+
   closeModal()
+
   render()
+
 }
 
-function completeItem(index){ done.push(todo[index]); todo.splice(index,1); saveData(); render() }
-function undoItem(index){ todo.push(done[index]); done.splice(index,1); saveData(); render() }
-function deleteDone(index){ done.splice(index,1); saveData(); render() }
+function completeItem(index){
 
-function changeAmount(index,list,delta){
-  let arr = list==="todo"?todo:done
-  arr[index].amount = Number(arr[index].amount)+delta
-  if(arr[index].amount<1) arr[index].amount=1
+  done.push(todo[index])
+  todo.splice(index,1)
+
   saveData()
   render()
+
+}
+
+function undoItem(index){
+
+  todo.push(done[index])
+  done.splice(index,1)
+
+  saveData()
+  render()
+
+}
+
+function deleteDone(index){
+
+  done.splice(index,1)
+
+  saveData()
+  render()
+
+}
+
+function changeAmount(index,list,delta){
+
+  let arr = list==="todo"?todo:done
+
+  arr[index].amount = Number(arr[index].amount)+delta
+
+  if(arr[index].amount<1) arr[index].amount=1
+
+  saveData()
+  render()
+
 }
 
 function editAmount(index,list){
+
   let arr = list==="todo"?todo:done
-  let value = prompt("Введите количество", arr[index].amount)
+
+  let value = prompt("Введите количество",arr[index].amount)
+
   if(value!==null && value!==""){
+
     arr[index].amount=Number(value)
+
     saveData()
     render()
+
   }
+
 }
 
-// drag & drop для todoList
-new Sortable(document.getElementById("todoList"), {
+new Sortable(document.getElementById("todoList"),{
+
   animation:150,
-  onEnd:function(evt){
-let movedItem = todo.splice(evt.oldIndex,1)[0]
-todo.splice(evt.newIndex,0,movedItem)
 
-saveData()
-}
+  onEnd:function(evt){
+
+    let movedItem = todo.splice(evt.oldIndex,1)[0]
+
+    todo.splice(evt.newIndex,0,movedItem)
+
+    saveData()
+
+  }
+
 })
+
 setInterval(loadData,5000)
+
 loadData()
+
 </script>
 
 </body>
-</html>
+  </html>
