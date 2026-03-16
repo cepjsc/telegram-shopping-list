@@ -133,12 +133,27 @@ li{
 const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec"
 let todo=[]
 let done=[]
+let lastData=""
 
 async function loadData(){
 
 let res = await fetch(API_URL)
-let data = await res.json()
+let text = await res.text()
 
+if(text !== lastData){
+
+lastData = text
+
+let data = JSON.parse(text)
+
+todo = data.todo || []
+done = data.done || []
+
+render()
+
+}
+
+}
 todo = data.todo || []
 done = data.done || []
 
