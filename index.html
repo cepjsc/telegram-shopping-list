@@ -133,26 +133,24 @@ li{
 const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec"
 let todo=[]
 let done=[]
-let lastData=""
+let lastData = "";
 
-async function loadData(){
+async function loadData() {
+  try {
+    let res = await fetch(API_URL);
+    let text = await res.text();
 
-let res = await fetch(API_URL)
-let text = await res.text()
+    if (text !== lastData) {
+      lastData = text;
+      let data = JSON.parse(text);
+      todo = data.todo || [];
+      done = data.done || [];
+      render();
+    }
 
-if(text !== lastData){
-
-lastData = text
-
-let data = JSON.parse(text)
-
-todo = data.todo || []
-done = data.done || []
-
-render()
-
-}
-
+  } catch(e) {
+    console.log("Ошибка загрузки", e);
+  }
 }
 todo = data.todo || []
 done = data.done || []
