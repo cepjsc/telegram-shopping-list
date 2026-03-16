@@ -130,8 +130,33 @@ li{
 </div>
 
 <script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec"
 let todo=[]
 let done=[]
+
+async function loadData(){
+
+let res = await fetch(API_URL)
+let data = await res.json()
+
+todo = data.todo || []
+done = data.done || []
+
+render()
+
+}
+
+async function saveData(){
+
+await fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+todo:todo,
+done:done
+})
+})
+
+}
 
 function render(){
   let todoList=document.getElementById("todoList")
@@ -183,39 +208,47 @@ function addItem(){
   if(name==="") return
   if(amount==="") amount=1
   todo.push({name:name, amount:Number(amount), unit:unit})
+  saveData()
   document.getElementById("nameInput").value=""
   document.getElementById("amountInput").value=""
   closeModal()
   render()
 }
 
-function completeItem(index){ done.push(todo[index]); todo.splice(index,1); render() }
-function undoItem(index){ todo.push(done[index]); done.splice(index,1); render() }
-function deleteDone(index){ done.splice(index,1); render() }
+function completeItem(index){ done.push(todo[index]); todo.splice(index,1); saveData(); render() }
+function undoItem(index){ todo.push(done[index]); done.splice(index,1); saveData(); render() }
+function deleteDone(index){ done.splice(index,1); saveData(); render() }
 
 function changeAmount(index,list,delta){
   let arr = list==="todo"?todo:done
   arr[index].amount = Number(arr[index].amount)+delta
   if(arr[index].amount<1) arr[index].amount=1
+  saveData()
   render()
 }
 
 function editAmount(index,list){
   let arr = list==="todo"?todo:done
   let value = prompt("Введите количество", arr[index].amount)
-  if(value!==null && value!==""){ arr[index].amount=Number(value); render() }
+  if(value!==null && value!==""){
+    arr[index].amount=Number(value)
+    saveData()
+    render()
+  }
 }
 
 // drag & drop для todoList
 new Sortable(document.getElementById("todoList"), {
   animation:150,
   onEnd:function(evt){
-    let movedItem = todo.splice(evt.oldIndex,1)[0]
-    todo.splice(evt.newIndex,0,movedItem)
-  }
-})
+let movedItem = todo.splice(evt.oldIndex,1)[0]
+todo.splice(evt.newIndex,0,movedItem)
 
-render()
+saveData()
+}
+})
+setInterval(loadData,5000)
+loadData()
 </script>
 
 </body>
