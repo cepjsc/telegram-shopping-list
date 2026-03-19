@@ -106,6 +106,16 @@ li{
   padding:8px;
 }
 
+/* Анимация синхронизации */
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.syncing {
+  animation: rotate 1s linear infinite;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -116,35 +126,26 @@ li{
 
 <h1>🛒 Список покупок</h1>
 
-<div style="position:relative;margin:10px 0 20px 0;">
+<!-- Поиск и кнопка синхронизации -->
+<div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
 
-<input 
-  id="searchInput"
-  placeholder="🔍 Поиск товара..."
-  oninput="render();toggleClear()"
-  style="
-    width:100%;
-    padding:10px 35px 10px 10px;
-    font-size:16px;
-    border-radius:8px;
-    border:1px solid #ccc;
-  "
->
+  <div style="position:relative;flex:1;max-width:300px;">
+    <input 
+      id="searchInput"
+      placeholder="🔍 Поиск..."
+      oninput="render();toggleClear()"
+      style="width:100%;padding:8px 30px 8px 10px;font-size:15px;border-radius:8px;border:1px solid #ccc;"
+    >
+    <span 
+      id="clearSearch"
+      onclick="clearSearch()"
+      style="position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:#888;display:none;"
+    >✖</span>
+  </div>
 
-<span 
-  id="clearSearch"
-  onclick="clearSearch()"
-  style="
-    position:absolute;
-    right:10px;
-    top:50%;
-    transform:translateY(-50%);
-    cursor:pointer;
-    font-size:18px;
-    color:#888;
-    display:none;
-  "
->❌</span>
+  <div id="syncContainer" style="position:relative; margin-left:10px; cursor:pointer;" onclick="manualSync()">
+    <span id="syncIcon" style="display:inline-block; font-size:20px;">🔄</span>
+  </div>
 
 </div>
 
@@ -156,13 +157,11 @@ li{
 
 <button class="fab" onclick="openModal()">+</button>
 
+<!-- Модальное окно добавления -->
 <div class="modal" id="modal">
   <div class="modalContent">
-
     <input id="nameInput" placeholder="Название товара">
-
     <input id="amountInput" type="number" placeholder="Количество">
-
     <select id="unitInput">
       <option value="шт">шт</option>
       <option value="кг">кг</option>
@@ -170,10 +169,21 @@ li{
       <option value="л">л</option>
       <option value="уп">уп</option>
     </select>
-
     <button onclick="addItem()">OK</button>
     <button onclick="closeModal()">Отмена</button>
+  </div>
+</div>
 
+<!-- Модальное окно редактирования единицы -->
+<div class="modal" id="unitModal">
+  <div class="modalContent">
+    <b>Выберите единицу</b>
+    <button onclick="setUnit('шт')">шт</button>
+    <button onclick="setUnit('кг')">кг</button>
+    <button onclick="setUnit('г')">г</button>
+    <button onclick="setUnit('л')">л</button>
+    <button onclick="setUnit('уп')">уп</button>
+    <button onclick="closeUnitModal()">Отмена</button>
   </div>
 </div>
 
@@ -181,254 +191,178 @@ li{
 
 const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec"
 
+let editUnitIndex=null
+let editUnitList=null
 let todo=[]
 let done=[]
 let lastData=""
 let searchText=""
 
+// Загрузка данных
 async function loadData(){
-
+  const icon = document.getElementById("syncIcon");
+  icon.classList.add("syncing"); // старт анимации
   try{
-
     let res = await fetch(API_URL)
     let text = await res.text()
-
     if(text !== lastData){
-
       lastData = text
-
       let data = JSON.parse(text)
-
       todo = data.todo || []
       done = data.done || []
-
       render()
-
     }
-
   }catch(e){
-
     console.log("Ошибка загрузки",e)
-
   }
-
+  icon.classList.remove("syncing"); // стоп анимации
 }
 
+// Ручная синхронизация
+async function manualSync(){
+  await loadData()
+}
+
+// Сохранение
 async function saveData(){
-
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      todo:todo,
-      done:done
+  try{
+    await fetch(API_URL,{
+      method:"POST",
+      body:JSON.stringify({todo:todo, done:done})
     })
-  })
-
+  }catch(e){
+    console.log("Ошибка сохранения", e)
+  }
 }
 
+// Поиск
 function clearSearch(){
-
   document.getElementById("searchInput").value=""
-
   toggleClear()
-
   render()
-
 }
-
 function toggleClear(){
-
   let input=document.getElementById("searchInput").value
   let btn=document.getElementById("clearSearch")
-
-  if(input.length>0){
-    btn.style.display="block"
-  }else{
-    btn.style.display="none"
-  }
-
+  btn.style.display = input.length>0 ? "block" : "none"
 }
 
+// Редактирование единицы
+function editUnit(index,list){
+  editUnitIndex=index
+  editUnitList=list
+  document.getElementById("unitModal").style.display="flex"
+}
+function setUnit(unit){
+  let arr = editUnitList==="todo"?todo:done
+  arr[editUnitIndex].unit=unit
+  saveData()
+  render()
+  closeUnitModal()
+}
+function closeUnitModal(){ document.getElementById("unitModal").style.display="none" }
+
+// Отрисовка списка
 function render(){
-
   searchText = document.getElementById("searchInput").value.toLowerCase()
-
   let todoList=document.getElementById("todoList")
   let doneList=document.getElementById("doneList")
-
   todoList.innerHTML=""
   doneList.innerHTML=""
 
   todo.forEach((item,index)=>{
-
-  if(searchText && !item.name.toLowerCase().includes(searchText)) return
-
+    if(searchText && !item.name.toLowerCase().includes(searchText)) return
     let li=document.createElement("li")
-
     li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" onchange="completeItem(${index})">
         <span>${item.name}</span>
       </div>
-
       <span class="itemAmount">
         <button onclick="changeAmount(${index},'todo',-1)">-</button>
         <span onclick="editAmount(${index},'todo')">${item.amount}</span>
         <button onclick="changeAmount(${index},'todo',1)">+</button>
-        ${item.unit}
+        <span onclick="editUnit(${index},'todo')" style="cursor:pointer">${item.unit}</span>
       </span>
     `
-
     todoList.appendChild(li)
-
   })
 
   done.forEach((item,index)=>{
-
-  if(searchText && !item.name.toLowerCase().includes(searchText)) return
-
+    if(searchText && !item.name.toLowerCase().includes(searchText)) return
     let li=document.createElement("li")
-
     li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" checked onchange="undoItem(${index})">
         <span class="doneText">${item.name}</span>
       </div>
-
-      <span class="itemAmount">${item.amount} ${item.unit}</span>
-
+      <span class="itemAmount">
+        ${item.amount}
+        <span onclick="editUnit(${index},'done')" style="cursor:pointer">${item.unit}</span>
+      </span>
       <button onclick="deleteDone(${index})">❌</button>
     `
-
     doneList.appendChild(li)
-
   })
-
 }
 
+// Модальные окна
 function openModal(){
-
   document.getElementById("modal").style.display="flex"
-
-  setTimeout(()=>{
-    document.getElementById("nameInput").focus()
-  },100)
-
+  setTimeout(()=>{document.getElementById("nameInput").focus()},100)
 }
+function closeModal(){ document.getElementById("modal").style.display="none" }
 
-function closeModal(){
-
-  document.getElementById("modal").style.display="none"
-
-}
-
+// Добавление товара
 function addItem(){
-
   let name=document.getElementById("nameInput").value.trim()
   let amount=document.getElementById("amountInput").value
   let unit=document.getElementById("unitInput").value
-
   if(name==="") return
-
   if(amount==="") amount=1
-
-  todo.push({
-    name:name,
-    amount:Number(amount),
-    unit:unit
-  })
-
+  todo.push({name:name, amount:Number(amount), unit:unit})
   saveData()
-
   document.getElementById("nameInput").value=""
   document.getElementById("amountInput").value=""
-
   closeModal()
-
   render()
-
 }
 
-function completeItem(index){
-
-  done.push(todo[index])
-  todo.splice(index,1)
-
-  saveData()
-  render()
-
-}
-
-function undoItem(index){
-
-  todo.push(done[index])
-  done.splice(index,1)
-
-  saveData()
-  render()
-
-}
-
-function deleteDone(index){
-
-  done.splice(index,1)
-
-  saveData()
-  render()
-
-}
-
+// Остальные действия
+function completeItem(index){ done.push(todo[index]); todo.splice(index,1); saveData(); render() }
+function undoItem(index){ todo.push(done[index]); done.splice(index,1); saveData(); render() }
+function deleteDone(index){ done.splice(index,1); saveData(); render() }
 function changeAmount(index,list,delta){
-
   let arr = list==="todo"?todo:done
-
   arr[index].amount = Number(arr[index].amount)+delta
-
   if(arr[index].amount<1) arr[index].amount=1
-
   saveData()
   render()
-
 }
-
 function editAmount(index,list){
-
   let arr = list==="todo"?todo:done
-
   let value = prompt("Введите количество",arr[index].amount)
-
   if(value!==null && value!==""){
-
     arr[index].amount=Number(value)
-
     saveData()
     render()
-
   }
-
 }
 
+// drag & drop
 new Sortable(document.getElementById("todoList"),{
-
   animation:150,
-
   onEnd:function(evt){
-
     let movedItem = todo.splice(evt.oldIndex,1)[0]
-
     todo.splice(evt.newIndex,0,movedItem)
-
     saveData()
-
   }
-
 })
 
-setInterval(loadData,5000)
-
+// Загрузка данных при запуске
 loadData()
 
 </script>
 
 </body>
-  </html>
+</html>
