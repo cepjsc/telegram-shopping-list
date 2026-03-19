@@ -116,6 +116,38 @@ li{
 
 <h1>🛒 Список покупок</h1>
 
+<div style="position:relative;margin:10px 0 20px 0;">
+
+<input 
+  id="searchInput"
+  placeholder="🔍 Поиск товара..."
+  oninput="render();toggleClear()"
+  style="
+    width:100%;
+    padding:10px 35px 10px 10px;
+    font-size:16px;
+    border-radius:8px;
+    border:1px solid #ccc;
+  "
+>
+
+<span 
+  id="clearSearch"
+  onclick="clearSearch()"
+  style="
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    font-size:18px;
+    color:#888;
+    display:none;
+  "
+>❌</span>
+
+</div>
+
 <div class="sectionTitle">🧺 Нужно купить</div>
 <ul id="todoList"></ul>
 
@@ -152,6 +184,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27Iks
 let todo=[]
 let done=[]
 let lastData=""
+let searchText=""
 
 async function loadData(){
 
@@ -193,7 +226,32 @@ async function saveData(){
 
 }
 
+function clearSearch(){
+
+  document.getElementById("searchInput").value=""
+
+  toggleClear()
+
+  render()
+
+}
+
+function toggleClear(){
+
+  let input=document.getElementById("searchInput").value
+  let btn=document.getElementById("clearSearch")
+
+  if(input.length>0){
+    btn.style.display="block"
+  }else{
+    btn.style.display="none"
+  }
+
+}
+
 function render(){
+
+  searchText = document.getElementById("searchInput").value.toLowerCase()
 
   let todoList=document.getElementById("todoList")
   let doneList=document.getElementById("doneList")
@@ -202,6 +260,8 @@ function render(){
   doneList.innerHTML=""
 
   todo.forEach((item,index)=>{
+
+  if(searchText && !item.name.toLowerCase().includes(searchText)) return
 
     let li=document.createElement("li")
 
@@ -224,6 +284,8 @@ function render(){
   })
 
   done.forEach((item,index)=>{
+
+  if(searchText && !item.name.toLowerCase().includes(searchText)) return
 
     let li=document.createElement("li")
 
