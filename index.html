@@ -5,7 +5,6 @@
 <title>Список покупок</title>
 
 <style>
-
 body{
   font-family:Arial;
   background:#f5f5f5;
@@ -13,7 +12,6 @@ body{
 }
 
 h1{text-align:center;}
-
 ul{list-style:none; padding:0;}
 
 li{
@@ -25,6 +23,12 @@ li{
   justify-content:space-between;
   border-radius:12px;
   font-size:18px;
+  transition: all 0.4s ease;
+}
+
+li.moving {
+  opacity:0.5;
+  transform:translateY(10px);
 }
 
 .leftPart{
@@ -46,8 +50,18 @@ li{
 }
 
 .doneText{
-  text-decoration:line-through;
-  color:gray;
+  color:inherit;
+}
+
+.doneList .doneText{
+  text-decoration: line-through;
+  opacity:0.6;
+}
+
+.doneText.animateDone {
+  text-decoration: line-through;
+  color: gray;
+  opacity: 0.6;
 }
 
 .sectionTitle{
@@ -56,7 +70,6 @@ li{
 }
 
 /* кнопка + */
-
 .fab{
   position:fixed;
   bottom:25px;
@@ -72,8 +85,7 @@ li{
   box-shadow:0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* окно */
-
+/* модальные окна */
 .modal{
   position:fixed;
   top:0;
@@ -106,7 +118,7 @@ li{
   padding:8px;
 }
 
-/* Анимация синхронизации */
+/* анимация синхронизации */
 @keyframes rotate {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -115,7 +127,6 @@ li{
 .syncing {
   animation: rotate 1s linear infinite;
 }
-
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -126,10 +137,9 @@ li{
 
 <h1>🛒 Список покупок</h1>
 
-<!-- Поиск и кнопка синхронизации -->
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
 
-  <div style="position:relative;flex:1;max-width:300px;">
+  <div style="position:relative; flex-grow:1; max-width:250px;">
     <input 
       id="searchInput"
       placeholder="🔍 Поиск..."
@@ -143,7 +153,7 @@ li{
     >✖</span>
   </div>
 
-  <div id="syncContainer" style="position:relative; margin-left:10px; cursor:pointer;" onclick="manualSync()">
+  <div id="syncContainer" style="margin-left:auto; cursor:pointer;" onclick="manualSync()">
     <span id="syncIcon" style="display:inline-block; font-size:20px;">🔄</span>
   </div>
 
@@ -153,11 +163,10 @@ li{
 <ul id="todoList"></ul>
 
 <div class="sectionTitle">✅ Куплено</div>
-<ul id="doneList"></ul>
+<ul id="doneList" class="doneList"></ul>
 
 <button class="fab" onclick="openModal()">+</button>
 
-<!-- Модальное окно добавления -->
 <div class="modal" id="modal">
   <div class="modalContent">
     <input id="nameInput" placeholder="Название товара">
@@ -174,7 +183,6 @@ li{
   </div>
 </div>
 
-<!-- Модальное окно редактирования единицы -->
 <div class="modal" id="unitModal">
   <div class="modalContent">
     <b>Выберите единицу</b>
@@ -188,95 +196,76 @@ li{
 </div>
 
 <script>
-
 const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec"
 
 let editUnitIndex=null
 let editUnitList=null
 let todo=[]
 let done=[]
-let lastData=""
 let searchText=""
 
-// Загрузка данных
+// =================== ЗАГРУЗКА ===================
 async function loadData(){
   const icon = document.getElementById("syncIcon");
-  icon.classList.add("syncing"); // старт анимации
+  icon.classList.add("syncing");
   try{
     let res = await fetch(API_URL)
-    let text = await res.text()
-    if(text !== lastData){
-      lastData = text
-      let data = JSON.parse(text)
-      todo = data.todo || []
-      done = data.done || []
-      render()
-    }
+    let data = await res.json()
+    todo = data.todo || []
+    done = data.done || []
+    render()
   }catch(e){
     console.log("Ошибка загрузки",e)
+  } finally {
+    icon.classList.remove("syncing");
   }
-  icon.classList.remove("syncing"); // стоп анимации
 }
 
-// Ручная синхронизация
-async function manualSync(){
-  await loadData()
-}
+function manualSync(){ loadData() }
 
-// Сохранение
+// =================== СОХРАНЕНИЕ ===================
 async function saveData(){
   try{
     await fetch(API_URL,{
       method:"POST",
       body:JSON.stringify({todo:todo, done:done})
     })
-  }catch(e){
-    console.log("Ошибка сохранения", e)
-  }
+  }catch(e){ console.log("Ошибка сохранения", e) }
 }
 
-// Поиск
+// =================== ПОИСК ===================
 function clearSearch(){
   document.getElementById("searchInput").value=""
   toggleClear()
   render()
 }
+
 function toggleClear(){
   let input=document.getElementById("searchInput").value
   let btn=document.getElementById("clearSearch")
   btn.style.display = input.length>0 ? "block" : "none"
 }
 
-// Редактирование единицы
-function editUnit(index,list){
-  editUnitIndex=index
-  editUnitList=list
-  document.getElementById("unitModal").style.display="flex"
-}
-function setUnit(unit){
-  let arr = editUnitList==="todo"?todo:done
-  arr[editUnitIndex].unit=unit
-  saveData()
-  render()
-  closeUnitModal()
-}
-function closeUnitModal(){ document.getElementById("unitModal").style.display="none" }
-
-// Отрисовка списка
+// =================== РЕНДЕР ===================
 function render(){
   searchText = document.getElementById("searchInput").value.toLowerCase()
-  let todoList=document.getElementById("todoList")
-  let doneList=document.getElementById("doneList")
+
+  const todoList=document.getElementById("todoList")
+  const doneList=document.getElementById("doneList")
+
   todoList.innerHTML=""
   doneList.innerHTML=""
 
+  // Активные
   todo.forEach((item,index)=>{
     if(searchText && !item.name.toLowerCase().includes(searchText)) return
-    let li=document.createElement("li")
+
+    const li=document.createElement("li")
+
     li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" onchange="completeItem(${index})">
-        <span>${item.name}</span>
+        <span class="doneText">${item.name}</span>
       </div>
       <span class="itemAmount">
         <button onclick="changeAmount(${index},'todo',-1)">-</button>
@@ -288,9 +277,12 @@ function render(){
     todoList.appendChild(li)
   })
 
+  // Завершенные
   done.forEach((item,index)=>{
     if(searchText && !item.name.toLowerCase().includes(searchText)) return
-    let li=document.createElement("li")
+
+    const li=document.createElement("li")
+
     li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" checked onchange="undoItem(${index})">
@@ -306,32 +298,53 @@ function render(){
   })
 }
 
-// Модальные окна
-function openModal(){
-  document.getElementById("modal").style.display="flex"
-  setTimeout(()=>{document.getElementById("nameInput").focus()},100)
-}
-function closeModal(){ document.getElementById("modal").style.display="none" }
+// =================== АНИМАЦИЯ ПЕРЕНОСА ===================
+function completeItem(index){
 
-// Добавление товара
-function addItem(){
-  let name=document.getElementById("nameInput").value.trim()
-  let amount=document.getElementById("amountInput").value
-  let unit=document.getElementById("unitInput").value
-  if(name==="") return
-  if(amount==="") amount=1
-  todo.push({name:name, amount:Number(amount), unit:unit})
+  const li = document.getElementById("todoList").children[index]
+  if(!li) return
+
+  const text = li.querySelector(".leftPart span")
+
+  // 1️⃣ Анимация зачеркивания
+  text.classList.add("animateDone")
+
+  // 2️⃣ Плавное исчезновение
+  setTimeout(()=>{
+    li.classList.add("moving")
+  },150)
+
+  // 3️⃣ Перенос после анимации
+  setTimeout(()=>{
+    done.unshift(todo[index])
+    todo.splice(index,1)
+    saveData()
+    render()
+  },400)
+}
+
+function undoItem(index){
+
+  const li = document.getElementById("doneList").children[index]
+  if(!li) return
+
+  li.classList.add("moving")
+
+  setTimeout(()=>{
+    todo.unshift(done[index])
+    done.splice(index,1)
+    saveData()
+    render()
+  },300)
+}
+
+// =================== ПРОЧЕЕ ===================
+function deleteDone(index){
+  done.splice(index,1)
   saveData()
-  document.getElementById("nameInput").value=""
-  document.getElementById("amountInput").value=""
-  closeModal()
   render()
 }
 
-// Остальные действия
-function completeItem(index){ done.push(todo[index]); todo.splice(index,1); saveData(); render() }
-function undoItem(index){ todo.push(done[index]); done.splice(index,1); saveData(); render() }
-function deleteDone(index){ done.splice(index,1); saveData(); render() }
 function changeAmount(index,list,delta){
   let arr = list==="todo"?todo:done
   arr[index].amount = Number(arr[index].amount)+delta
@@ -339,6 +352,7 @@ function changeAmount(index,list,delta){
   saveData()
   render()
 }
+
 function editAmount(index,list){
   let arr = list==="todo"?todo:done
   let value = prompt("Введите количество",arr[index].amount)
@@ -349,7 +363,54 @@ function editAmount(index,list){
   }
 }
 
-// drag & drop
+// =================== ЕДИНИЦЫ ===================
+function editUnit(index,list){
+  editUnitIndex=index
+  editUnitList=list
+  document.getElementById("unitModal").style.display="flex"
+}
+
+function setUnit(unit){
+  let arr = editUnitList==="todo"?todo:done
+  arr[editUnitIndex].unit=unit
+  saveData()
+  render()
+  closeUnitModal()
+}
+
+function closeUnitModal(){
+  document.getElementById("unitModal").style.display="none"
+}
+
+// =================== ДОБАВЛЕНИЕ ===================
+function openModal(){
+  document.getElementById("modal").style.display="flex"
+  setTimeout(()=>{document.getElementById("nameInput").focus()},100)
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display="none"
+}
+
+function addItem(){
+  let name=document.getElementById("nameInput").value.trim()
+  let amount=document.getElementById("amountInput").value
+  let unit=document.getElementById("unitInput").value
+
+  if(name==="") return
+  if(amount==="") amount=1
+
+  todo.unshift({name:name, amount:Number(amount), unit:unit})
+
+  saveData()
+
+  document.getElementById("nameInput").value=""
+  document.getElementById("amountInput").value=""
+  closeModal()
+  render()
+}
+
+// =================== DRAG ===================
 new Sortable(document.getElementById("todoList"),{
   animation:150,
   onEnd:function(evt){
@@ -359,9 +420,8 @@ new Sortable(document.getElementById("todoList"),{
   }
 })
 
-// Загрузка данных при запуске
+// =================== СТАРТ ===================
 loadData()
-
 </script>
 
 </body>
