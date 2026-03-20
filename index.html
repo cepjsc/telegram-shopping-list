@@ -85,11 +85,6 @@ li.moving {
   box-shadow:0 4px 10px rgba(0,0,0,0.3);
 }
 
-.sortable-chosen{
-  background:#e8f5e9;
-  transform:scale(1.03);
-}
-  
 /* модальные окна */
 .modal{
   position:fixed;
@@ -418,11 +413,6 @@ function addItem(){
 // =================== DRAG ===================
 new Sortable(document.getElementById("todoList"),{
   animation:150,
-
-  delay:400,            // удержание 400мс
-  delayOnTouchOnly:true,// только на телефонах
-  touchStartThreshold:5,// игнор маленьких движений
-
   onEnd:function(evt){
     let movedItem = todo.splice(evt.oldIndex,1)[0]
     todo.splice(evt.newIndex,0,movedItem)
