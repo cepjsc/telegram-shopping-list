@@ -413,6 +413,11 @@ function addItem(){
 // =================== DRAG ===================
 new Sortable(document.getElementById("todoList"),{
   animation:150,
+
+  delay:400,            // удержание 400мс
+  delayOnTouchOnly:true,// только на телефонах
+  touchStartThreshold:5,// игнор маленьких движений
+
   onEnd:function(evt){
     let movedItem = todo.splice(evt.oldIndex,1)[0]
     todo.splice(evt.newIndex,0,movedItem)
