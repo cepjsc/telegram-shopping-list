@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+1<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -127,6 +127,24 @@ li.moving {
 .syncing {
   animation: rotate 1s linear infinite;
 }
+
+.editInput{
+  font-size:18px;
+  padding:4px 6px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+.editButtons{
+  display:flex;
+  gap:5px;
+}
+
+.editButtons button{
+  padding:4px 6px;
+  font-size:14px;
+}
+  
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -262,10 +280,12 @@ function render(){
 
     const li=document.createElement("li")
 
-    li.innerHTML=`
+    li.innerHTML=
       <div class="leftPart">
         <input type="checkbox" onchange="completeItem(${index})">
-        <span class="doneText">${item.name}</span>
+        <span class="doneText" onclick="startEditName(${index},'todo',this)">
+        ${item.name}
+        </span>
       </div>
       <span class="itemAmount">
         <button onclick="changeAmount(${index},'todo',-1)">-</button>
@@ -286,7 +306,9 @@ function render(){
     li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" checked onchange="undoItem(${index})">
-        <span class="doneText">${item.name}</span>
+        <span class="doneText" onclick="startEditName(${index},'done',this)">
+        ${item.name}
+        </span>
       </div>
       <span class="itemAmount">
         ${item.amount}
@@ -427,6 +449,38 @@ new Sortable(document.getElementById("todoList"),{
 
 // =================== СТАРТ ===================
 loadData()
+
+function startEditName(index,list,element){
+
+  let arr = list==="todo"?todo:done
+  let oldName = arr[index].name
+
+  const parent = element.parentElement
+
+  parent.innerHTML = `
+    <input class="editInput" id="editField" value="${oldName}">
+    <div class="editButtons">
+      <button onclick="saveEditName(${index},'${list}')">✔</button>
+      <button onclick="render()">✖</button>
+    </div>
+  `
+
+  document.getElementById("editField").focus()
+}
+
+function saveEditName(index,list){
+
+  let arr = list==="todo"?todo:done
+  let value = document.getElementById("editField").value.trim()
+
+  if(value!==""){
+    arr[index].name = value
+    saveData()
+  }
+
+  render()
+}
+
 </script>
 
 </body>
