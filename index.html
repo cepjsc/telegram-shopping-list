@@ -280,7 +280,7 @@ function render(){
 
     const li=document.createElement("li")
 
-    li.innerHTML=
+    li.innerHTML = `
       <div class="leftPart">
         <input type="checkbox" onchange="completeItem(${index})">
         <span class="doneText" onclick="startEditName(${index},'todo',this)">
