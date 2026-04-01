@@ -224,18 +224,29 @@ let searchText=""
 
 // =================== ЗАГРУЗКА ===================
 async function loadData(){
+
   const icon = document.getElementById("syncIcon");
   icon.classList.add("syncing");
+
   try{
+
     let res = await fetch(API_URL)
     let data = await res.json()
-    todo = data.todo || []
-    done = data.done || []
+
+    todo = (data.todo || []).filter(i=>i && i.name)
+    done = (data.done || []).filter(i=>i && i.name)
+
     render()
+    toggleClear()
+
   }catch(e){
+
     console.log("Ошибка загрузки",e)
+
   } finally {
+
     icon.classList.remove("syncing");
+
   }
 }
 
@@ -266,6 +277,7 @@ function toggleClear(){
 
 // =================== РЕНДЕР ===================
 function render(){
+
   searchText = document.getElementById("searchInput").value.toLowerCase()
 
   const todoList=document.getElementById("todoList")
@@ -276,7 +288,8 @@ function render(){
 
   // Активные
   todo.forEach((item,index)=>{
-    if(searchText && !item.name.toLowerCase().includes(searchText)) return
+
+    if(searchText && !(item.name || "").toLowerCase().includes(searchText)) return
 
     const li=document.createElement("li")
     li.dataset.index=index
@@ -295,17 +308,20 @@ function render(){
         <span onclick="editUnit(${index},'todo')" style="cursor:pointer">${item.unit}</span>
       </span>
     `
+
     todoList.appendChild(li)
   })
 
+
   // Завершенные
   done.forEach((item,index)=>{
-  if(searchText && !item.name.toLowerCase().includes(searchText)) return
 
-  const li=document.createElement("li")
-  li.dataset.index=index
+    if(searchText && !(item.name || "").toLowerCase().includes(searchText)) return
 
-  li.innerHTML=`
+    const li=document.createElement("li")
+    li.dataset.index=index
+
+    li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" checked onchange="undoItem(this)">
         <span class="doneText" onclick="startEditName(${index},'done',this)">
@@ -318,8 +334,10 @@ function render(){
       </span>
       <button onclick="deleteDone(${index})">❌</button>
     `
+
     doneList.appendChild(li)
   })
+
 }
 
 // =================== АНИМАЦИЯ ПЕРЕНОСА ===================
@@ -478,6 +496,7 @@ function saveEditName(index,list){
   }
 
   render()
+  toggleClear()
 }
 
 </script>
