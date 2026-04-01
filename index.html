@@ -279,10 +279,11 @@ function render(){
     if(searchText && !item.name.toLowerCase().includes(searchText)) return
 
     const li=document.createElement("li")
+    li.dataset.index=index
 
     li.innerHTML = `
       <div class="leftPart">
-        <input type="checkbox" onchange="completeItem(${index})">
+        <input type="checkbox" onchange="completeItem(this)">
         <span class="doneText" onclick="startEditName(${index},'todo',this)">
         ${item.name}
         </span>
@@ -305,7 +306,7 @@ function render(){
 
     li.innerHTML=`
       <div class="leftPart">
-        <input type="checkbox" checked onchange="undoItem(${index})">
+        <input type="checkbox" checked onchange="undoItem(this)">
         <span class="doneText" onclick="startEditName(${index},'done',this)">
         ${item.name}
         </span>
@@ -321,22 +322,19 @@ function render(){
 }
 
 // =================== АНИМАЦИЯ ПЕРЕНОСА ===================
-function completeItem(index){
+function completeItem(el){
 
-  const li = document.getElementById("todoList").children[index]
-  if(!li) return
+  const li = el.closest("li")
+  const index = Number(li.dataset.index)
 
-  const text = li.querySelector(".leftPart span")
+  const text = li.querySelector(".doneText")
 
-  // 1️⃣ Анимация зачеркивания
   text.classList.add("animateDone")
 
-  // 2️⃣ Плавное исчезновение
   setTimeout(()=>{
     li.classList.add("moving")
   },150)
 
-  // 3️⃣ Перенос после анимации
   setTimeout(()=>{
     done.unshift(todo[index])
     todo.splice(index,1)
@@ -345,10 +343,10 @@ function completeItem(index){
   },400)
 }
 
-function undoItem(index){
+function undoItem(el){
 
-  const li = document.getElementById("doneList").children[index]
-  if(!li) return
+  const li = el.closest("li")
+  const index = Number(li.dataset.index)
 
   li.classList.add("moving")
 
