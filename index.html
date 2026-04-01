@@ -300,11 +300,12 @@ function render(){
 
   // Завершенные
   done.forEach((item,index)=>{
-    if(searchText && !item.name.toLowerCase().includes(searchText)) return
+  if(searchText && !item.name.toLowerCase().includes(searchText)) return
 
-    const li=document.createElement("li")
+  const li=document.createElement("li")
+  li.dataset.index=index
 
-    li.innerHTML=`
+  li.innerHTML=`
       <div class="leftPart">
         <input type="checkbox" checked onchange="undoItem(this)">
         <span class="doneText" onclick="startEditName(${index},'done',this)">
