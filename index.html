@@ -48,8 +48,14 @@ li.moving {
   font-size:14px;
 }
 
-.itemAmount button{
-  padding:4px 8px;
+/* 🔥 ВАЖНО: input для количества */
+.amountInput{
+  width:60px;
+  border:none;
+  background:transparent;
+  font-size:16px;
+  text-align:center;
+  outline:none;
 }
 
 .doneText{
@@ -59,12 +65,6 @@ li.moving {
 .doneList .doneText{
   text-decoration: line-through;
   opacity:0.6;
-}
-
-.doneText.animateDone {
-  text-decoration: line-through;
-  color: gray;
-  opacity: 0.6;
 }
 
 .sectionTitle{
@@ -117,37 +117,6 @@ li.moving {
   font-size:16px;
 }
 
-.modalContent button{
-  padding:8px;
-}
-
-/* анимация синхронизации */
-@keyframes rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.syncing {
-  animation: rotate 1s linear infinite;
-}
-
-.editInput{
-  font-size:18px;
-  padding:4px 6px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-
-.editButtons{
-  display:flex;
-  gap:5px;
-}
-
-.editButtons button{
-  padding:4px 6px;
-  font-size:14px;
-}
-  
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -159,39 +128,21 @@ li.moving {
 <h1>🛒 Список покупок</h1>
 
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
-
-  <div style="position:relative; flex-grow:1; max-width:250px;">
-    <input 
-      id="searchInput"
-      placeholder="🔍 Поиск..."
-      oninput="render();toggleClear()"
-      style="width:100%;padding:8px 30px 8px 10px;font-size:15px;border-radius:8px;border:1px solid #ccc;"
-    >
-    <span 
-      id="clearSearch"
-      onclick="clearSearch()"
-      style="position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:#888;display:none;"
-    >✖</span>
-  </div>
-
-  <div id="syncContainer" style="margin-left:auto; cursor:pointer;" onclick="manualSync()">
-    <span id="syncIcon" style="display:inline-block; font-size:20px;">🔄</span>
-  </div>
-
+  <input id="searchInput" placeholder="🔍 Поиск..." oninput="render()">
 </div>
 
 <div class="sectionTitle">🧺 Нужно купить</div>
 <ul id="todoList"></ul>
 
 <div class="sectionTitle">✅ Куплено</div>
-<ul id="doneList" class="doneList"></ul>
+<ul id="doneList"></ul>
 
 <button class="fab" onclick="openModal()">+</button>
 
 <div class="modal" id="modal">
   <div class="modalContent">
     <input id="nameInput" placeholder="Название товара">
-    <input id="amountInput" type="number" placeholder="Количество">
+    <input id="amountInput" placeholder="Количество">
     <select id="unitInput">
       <option value="шт">шт</option>
       <option value="кг">кг</option>
@@ -204,84 +155,31 @@ li.moving {
   </div>
 </div>
 
-<div class="modal" id="unitModal">
-  <div class="modalContent">
-    <b>Выберите единицу</b>
-    <button onclick="setUnit('шт')">шт</button>
-    <button onclick="setUnit('кг')">кг</button>
-    <button onclick="setUnit('г')">г</button>
-    <button onclick="setUnit('л')">л</button>
-    <button onclick="setUnit('уп')">уп</button>
-    <button onclick="closeUnitModal()">Отмена</button>
-  </div>
-</div>
-
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec"
 
-let editUnitIndex=null
-let editUnitList=null
 let todo=[]
 let done=[]
-let searchText=""
 
-// =================== ЗАГРУЗКА ===================
+// ================= LOAD =================
 async function loadData(){
+  let res = await fetch(API_URL)
+  let data = await res.json()
 
-  const icon = document.getElementById("syncIcon");
-  icon.classList.add("syncing");
+  todo = data.todo || []
+  done = data.done || []
 
-  try{
-
-    let res = await fetch(API_URL)
-    let data = await res.json()
-
-    todo = (data.todo || []).filter(i=>i && i.name)
-    done = (data.done || []).filter(i=>i && i.name)
-
-    render()
-    toggleClear()
-
-  }catch(e){
-
-    console.log("Ошибка загрузки",e)
-
-  } finally {
-
-    icon.classList.remove("syncing");
-
-  }
-}
-
-function manualSync(){ loadData() }
-
-// =================== СОХРАНЕНИЕ ===================
-async function saveData(){
-  try{
-    await fetch(API_URL,{
-      method:"POST",
-      body:JSON.stringify({todo:todo, done:done})
-    })
-  }catch(e){ console.log("Ошибка сохранения", e) }
-}
-
-// =================== ПОИСК ===================
-function clearSearch(){
-  document.getElementById("searchInput").value=""
-  toggleClear()
   render()
 }
-
-function toggleClear(){
-  let input=document.getElementById("searchInput").value
-  let btn=document.getElementById("clearSearch")
-  btn.style.display = input.length>0 ? "block" : "none"
+function saveData(){
+  fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({todo,done})
+  })
 }
 
-// =================== РЕНДЕР ===================
+// ================= RENDER =================
 function render(){
-
-  searchText = document.getElementById("searchInput").value.toLowerCase()
 
   const todoList=document.getElementById("todoList")
   const doneList=document.getElementById("doneList")
@@ -289,219 +187,118 @@ function render(){
   todoList.innerHTML=""
   doneList.innerHTML=""
 
-  // Активные
   todo.forEach((item,index)=>{
-
-    if(searchText && !(item.name || "").toLowerCase().includes(searchText)) return
-
     const li=document.createElement("li")
-    li.dataset.index=index
-
-    li.innerHTML = `
-      <div class="leftPart">
-        <input type="checkbox" onchange="completeItem(this)">
-        <span class="doneText" onclick="startEditName(${index},'todo',this)">
-        ${item.name}
-        </span>
-      </div>
-      <span class="itemAmount">
-        <button onclick="changeAmount(${index},'todo',-1)">-</button>
-        <span onclick="editAmount(${index},'todo')">${item.amount}</span>
-        <button onclick="changeAmount(${index},'todo',1)">+</button>
-        <span onclick="editUnit(${index},'todo')" style="cursor:pointer">${item.unit}</span>
-      </span>
-    `
-
-    todoList.appendChild(li)
-  })
-
-
-  // Завершенные
-  done.forEach((item,index)=>{
-
-    if(searchText && !(item.name || "").toLowerCase().includes(searchText)) return
-
-    const li=document.createElement("li")
-    li.dataset.index=index
 
     li.innerHTML=`
       <div class="leftPart">
-        <input type="checkbox" checked onchange="undoItem(this)">
-        <span class="doneText" onclick="startEditName(${index},'done',this)">
-        ${item.name}
-        </span>
+        <input type="checkbox" onchange="moveToDone(${index})">
+        <span>${item.name}</span>
       </div>
-      <span class="itemAmount">
-        ${item.amount}
-        <span onclick="editUnit(${index},'done')" style="cursor:pointer">${item.unit}</span>
-      </span>
-      <button onclick="deleteDone(${index})">❌</button>
-    `
 
-    doneList.appendChild(li)
+      <div class="itemAmount">
+        <button onclick="changeAmount(${index},-1)">-</button>
+
+        <input 
+          class="amountInput"
+          value="${item.amount}"
+          inputmode="decimal"
+          oninput="updateAmount(${index},this.value)"
+        >
+
+        <button onclick="changeAmount(${index},1)">+</button>
+        <span>${item.unit}</span>
+      </div>
+    `
+    todoList.appendChild(li)
   })
 
+  done.forEach((item,index)=>{
+    const li=document.createElement("li")
+
+    li.innerHTML=`
+      <div class="leftPart">
+        <input type="checkbox" checked onchange="moveToTodo(${index})">
+        <span style="text-decoration:line-through;opacity:0.6">${item.name}</span>
+      </div>
+
+      <div class="itemAmount">
+        ${item.amount} ${item.unit}
+      </div>
+    `
+    doneList.appendChild(li)
+  })
 }
 
-// =================== АНИМАЦИЯ ПЕРЕНОСА ===================
-function completeItem(el){
+// ================= AMOUNT FIX 🔥 =================
+function updateAmount(index,value){
 
-  const li = el.closest("li")
-  const index = Number(li.dataset.index)
+  value = value.replace(",", ".")
+  let num = parseFloat(value)
 
-  const text = li.querySelector(".doneText")
-
-  text.classList.add("animateDone")
-
-  setTimeout(()=>{
-    li.classList.add("moving")
-  },150)
-
-  setTimeout(()=>{
-    done.unshift(todo[index])
-    todo.splice(index,1)
+  if(!isNaN(num) && num > 0){
+    todo[index].amount = num
     saveData()
-    render()
-  },400)
+  }
 }
 
-function undoItem(el){
+function changeAmount(index,delta){
+  let val = parseFloat(todo[index].amount)
+  if(isNaN(val)) val = 1
 
-  const li = el.closest("li")
-  const index = Number(li.dataset.index)
+  val += delta
+  if(val < 1) val = 1
 
-  li.classList.add("moving")
-
-  setTimeout(()=>{
-    todo.unshift(done[index])
-    done.splice(index,1)
-    saveData()
-    render()
-  },300)
+  todo[index].amount = val
+  saveData()
+  render()
 }
 
-// =================== ПРОЧЕЕ ===================
-function deleteDone(index){
+// ================= MOVE =================
+function moveToDone(index){
+  done.unshift(todo[index])
+  todo.splice(index,1)
+  saveData()
+  render()
+}
+
+function moveToTodo(index){
+  todo.unshift(done[index])
   done.splice(index,1)
   saveData()
   render()
 }
 
-function changeAmount(index,list,delta){
-  let arr = list==="todo"?todo:done
-  arr[index].amount = Number(arr[index].amount)+delta
-  if(arr[index].amount<1) arr[index].amount=1
-  saveData()
-  render()
-}
-
-function editAmount(index,list){
-  let arr = list==="todo"?todo:done
-  let value = prompt("Введите количество",arr[index].amount)
-  if(value!==null && value!==""){
-    arr[index].amount=Number(value)
-    saveData()
-    render()
-  }
-}
-
-// =================== ЕДИНИЦЫ ===================
-function editUnit(index,list){
-  editUnitIndex=index
-  editUnitList=list
-  document.getElementById("unitModal").style.display="flex"
-}
-
-function setUnit(unit){
-  let arr = editUnitList==="todo"?todo:done
-  arr[editUnitIndex].unit=unit
-  saveData()
-  render()
-  closeUnitModal()
-}
-
-function closeUnitModal(){
-  document.getElementById("unitModal").style.display="none"
-}
-
-// =================== ДОБАВЛЕНИЕ ===================
+// ================= ADD =================
 function openModal(){
   document.getElementById("modal").style.display="flex"
-  setTimeout(()=>{document.getElementById("nameInput").focus()},100)
 }
-
 function closeModal(){
   document.getElementById("modal").style.display="none"
 }
 
 function addItem(){
-  let name=document.getElementById("nameInput").value.trim()
+  let name=document.getElementById("nameInput").value
   let amount=document.getElementById("amountInput").value
   let unit=document.getElementById("unitInput").value
 
-  if(name==="") return
+  if(!name) return
+
+  amount = amount.replace(",", ".")
   if(amount==="") amount=1
 
-  todo.unshift({name:name, amount:Number(amount), unit:unit})
+  todo.unshift({
+    name,
+    amount:parseFloat(amount),
+    unit
+  })
 
   saveData()
-
-  document.getElementById("nameInput").value=""
-  document.getElementById("amountInput").value=""
   closeModal()
   render()
 }
 
-// =================== DRAG ===================
-new Sortable(document.getElementById("todoList"),{
-  animation:150,
-
-  delay:300,                 // удержание 300 мс
-  delayOnTouchOnly:true,     // только на телефоне
-  touchStartThreshold:5,     // защита от случайного движения
-
-  onEnd:function(evt){
-    let movedItem = todo.splice(evt.oldIndex,1)[0]
-    todo.splice(evt.newIndex,0,movedItem)
-    saveData()
-  }
-})
-
-// =================== СТАРТ ===================
 loadData()
-
-function startEditName(index,list,element){
-
-  let arr = list==="todo"?todo:done
-  let oldName = arr[index].name
-
-  const parent = element.parentElement
-
-  parent.innerHTML = `
-    <input class="editInput" id="editField" value="${oldName}">
-    <div class="editButtons">
-      <button onclick="saveEditName(${index},'${list}')">✔</button>
-      <button onclick="render()">✖</button>
-    </div>
-  `
-
-  document.getElementById("editField").focus()
-}
-
-function saveEditName(index,list){
-
-  let arr = list==="todo"?todo:done
-  let value = document.getElementById("editField").value.trim()
-
-  if(value!==""){
-    arr[index].name = value
-    saveData()
-  }
-
-  render()
-  toggleClear()
-}
-
 </script>
 
 </body>
