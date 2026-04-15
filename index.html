@@ -314,7 +314,12 @@ function render(){
       </div>
       <span class="itemAmount">
         <button onclick="changeAmount(${index},'todo',-1)">-</button>
-        <input    class="amountInput"   value="${item.amount}"   inputmode="decimal"   oninput="editAmount(${index},'todo',this.value)" />
+        <input 
+          class="amountInput"
+          value="${item.amount}"
+          inputmode="decimal"
+          oninput="editAmount(${index},'todo',this.value)"
+        />
         <button onclick="changeAmount(${index},'todo',1)">+</button>
         <span onclick="editUnit(${index},'todo')" style="cursor:pointer">${item.unit}</span>
       </span>
@@ -407,7 +412,19 @@ function editAmount(index,list){
   let arr = list==="todo"?todo:done
   let value = prompt("Введите количество",arr[index].amount)
   if(value!==null && value!==""){
-    function editAmount(index,list,value){    let arr = list==="todo"?todo:done    value = value.replace(",", ".")    let num = parseFloat(value)    if(!isNaN(num) && num > 0){     arr[index].amount = num     saveData()   } }
+    function editAmount(index,list,value){
+
+      let arr = list==="todo"?todo:done
+    
+      value = value.replace(",", ".")
+    
+      let num = parseFloat(value)
+    
+      if(!isNaN(num) && num > 0){
+        arr[index].amount = num
+        saveData()
+      }
+    }
     saveData()
     render()
   }
