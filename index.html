@@ -147,7 +147,15 @@ li.moving {
   padding:4px 6px;
   font-size:14px;
 }
-  
+
+.amountInput{
+  width:60px;
+  border:none;
+  background:transparent;
+  font-size:16px;
+  text-align:center;
+  outline:none;
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -306,7 +314,7 @@ function render(){
       </div>
       <span class="itemAmount">
         <button onclick="changeAmount(${index},'todo',-1)">-</button>
-        <span onclick="editAmount(${index},'todo')">${item.amount}</span>
+        <input    class="amountInput"   value="${item.amount}"   inputmode="decimal"   oninput="editAmount(${index},'todo',this.value)" />
         <button onclick="changeAmount(${index},'todo',1)">+</button>
         <span onclick="editUnit(${index},'todo')" style="cursor:pointer">${item.unit}</span>
       </span>
@@ -389,7 +397,7 @@ function deleteDone(index){
 
 function changeAmount(index,list,delta){
   let arr = list==="todo"?todo:done
-  arr[index].amount = Number(arr[index].amount)+delta
+  arr[index].amount = arr[index].amount = parseFloat(arr[index].amount) + delta
   if(arr[index].amount<1) arr[index].amount=1
   saveData()
   render()
@@ -399,7 +407,7 @@ function editAmount(index,list){
   let arr = list==="todo"?todo:done
   let value = prompt("Введите количество",arr[index].amount)
   if(value!==null && value!==""){
-    arr[index].amount=Number(value)
+    function editAmount(index,list,value){    let arr = list==="todo"?todo:done    value = value.replace(",", ".")    let num = parseFloat(value)    if(!isNaN(num) && num > 0){     arr[index].amount = num     saveData()   } }
     saveData()
     render()
   }
