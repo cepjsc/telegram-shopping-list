@@ -281,7 +281,7 @@ li.moving {
 
 <h1>
   🛒 Список покупок 
-  <span class="version">v1.6.2</span>
+  <span class="version">v1.6.3</span>
 </h1>
 
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
@@ -323,15 +323,18 @@ li.moving {
     <div style="display:flex; gap:8px;">
       <input id="amountInput" type="number" placeholder="Кол-во" style="flex:1;">
       <select id="unitInput" style="width:80px;">
-      <option value="шт">шт</option>
-      <option value="кг">кг</option>
-      <option value="г">г</option>
-      <option value="л">л</option>
-      <option value="уп">уп</option>
-    </select>
-    <button onclick="addItem()">OK</button>
-    <button onclick="closeModal()">Отмена</button>
-  </div>
+        <option value="шт">шт</option>
+        <option value="кг">кг</option>
+        <option value="г">г</option>
+        <option value="л">л</option>
+        <option value="уп">уп</option>
+      </select>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <button onclick="addItem()" style="flex:1;">Добавить</button>
+      <button onclick="closeModal()" style="flex:1;">Отмена</button>
+    </div>
 </div>
 
 <div class="modal" id="unitModal">
