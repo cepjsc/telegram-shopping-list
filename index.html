@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Список покупок</title>
-</title>Версия 1.4</title>
+</title>Версия 1.5.3</title>
 <style>
 body{
   font-family:Arial;
@@ -51,7 +51,29 @@ li.moving {
 }
 
 .doneText{
-  color:inherit;
+  position:relative;
+  display:inline-block;
+}
+
+.doneText::after{
+  content:"";
+  position:absolute;
+  left:0;
+  top:50%;
+  width:0%;
+  height:2px;
+  background:#888;
+  transition: width 0.4s ease;
+}
+
+.doneText.animateDone::after{
+  width:100%;
+}
+
+.doneText.animateDone{
+  color:gray;
+  opacity:0.7;
+  transition: all 0.3s ease;
 }
 
 .doneList .doneText{
@@ -317,6 +339,7 @@ function render(){
           value="${item.amount}"
           inputmode="decimal"
           oninput="editAmount(${index},'todo',this.value)"
+          onblur="render()"
         />
         <button onclick="changeAmount(${index},'todo',1)">+</button>
         <span onclick="editUnit(${index},'todo')" style="cursor:pointer">${item.unit}</span>
@@ -359,21 +382,23 @@ function completeItem(el){
 
   const li = el.closest("li")
   const index = Number(li.dataset.index)
-
   const text = li.querySelector(".doneText")
 
+  // 1. запускаем зачеркивание
   text.classList.add("animateDone")
 
+  // 2. чуть ждём, потом движение
   setTimeout(()=>{
     li.classList.add("moving")
-  },150)
+  },400)
 
+  // 3. перенос
   setTimeout(()=>{
     done.unshift(todo[index])
     todo.splice(index,1)
     saveData()
     render()
-  },400)
+  },700)
 }
 
 function undoItem(el){
@@ -399,32 +424,44 @@ function deleteDone(index){
 }
 
 function changeAmount(index,list,delta){
+
   let arr = list==="todo"?todo:done
-  arr[index].amount = arr[index].amount = parseFloat(arr[index].amount) + delta
-  if(arr[index].amount<1) arr[index].amount=1
+
+  let current = parseFloat(arr[index].amount) || 0
+
+  let step
+
+  if(delta > 0){
+    // увеличение
+    step = current < 1 ? 0.5 : 1
+  } else {
+    // уменьшение
+    step = current > 1 ? 1 : 0.5
+  }
+
+  let newValue = current + (delta * step)
+
+  if(newValue < 0.5) newValue = 0.5
+
+  newValue = Math.round(newValue * 10) / 10
+
+  arr[index].amount = newValue
+
   saveData()
   render()
 }
 
-function editAmount(index,list){
-  let arr = list==="todo"?todo:done
-  let value = prompt("Введите количество",arr[index].amount)
-  if(value!==null && value!==""){
-    function editAmount(index,list,value){
+function editAmount(index,list,value){
 
-      let arr = list==="todo"?todo:done
-    
-      value = value.replace(",", ".")
-    
-      let num = parseFloat(value)
-    
-      if(!isNaN(num) && num > 0){
-        arr[index].amount = num
-        saveData()
-      }
-    }
+  let arr = list==="todo"?todo:done
+
+  value = value.replace(",", ".")
+
+  let num = parseFloat(value)
+
+  if(!isNaN(num) && num > 0){
+    arr[index].amount = num
     saveData()
-    render()
   }
 }
 
