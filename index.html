@@ -20,6 +20,17 @@ input[type="checkbox"]{
   cursor:pointer;
 }
 
+@keyframes modalShow{
+  from{
+    opacity:0;
+    transform:translateY(20px) scale(0.95);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
 h1{text-align:center;}
 ul{list-style:none; padding:0;}
 
@@ -148,21 +159,53 @@ li.moving {
 .modalContent{
   background:white;
   padding:20px;
-  border-radius:10px;
-  width:260px;
+  border-radius:16px;
+  width:280px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:14px;
+
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+  animation:modalShow 0.25s ease;
 }
 
 .modalContent input,
 .modalContent select{
-  padding:8px;
-  font-size:16px;
+  padding:10px;
+  font-size:15px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  outline:none;
+  transition:0.2s;
+}
+
+.modalContent input:focus,
+.modalContent select:focus{
+  border-color:#2ecc71;
+  box-shadow:0 0 0 2px rgba(46,204,113,0.2);
 }
 
 .modalContent button{
-  padding:8px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.modalContent button:first-of-type{
+  background:#2ecc71;
+  color:white;
+  font-weight:bold;
+}
+
+.modalContent button:last-of-type{
+  background:#eee;
+}
+
+.modalContent button:active{
+  transform:scale(0.96);
 }
 
 /* анимация синхронизации */
@@ -238,7 +281,7 @@ li.moving {
 
 <h1>
   🛒 Список покупок 
-  <span class="version">v1.6.1</span>
+  <span class="version">v1.6.2</span>
 </h1>
 
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
@@ -273,9 +316,13 @@ li.moving {
 
 <div class="modal" id="modal">
   <div class="modalContent">
+  <div style="font-weight:bold; font-size:16px; text-align:center;">
+    ➕ Новый товар
+  </div>
     <input id="nameInput" placeholder="Название товара">
-    <input id="amountInput" type="number" placeholder="Количество">
-    <select id="unitInput">
+    <div style="display:flex; gap:8px;">
+      <input id="amountInput" type="number" placeholder="Кол-во" style="flex:1;">
+      <select id="unitInput" style="width:80px;">
       <option value="шт">шт</option>
       <option value="кг">кг</option>
       <option value="г">г</option>
