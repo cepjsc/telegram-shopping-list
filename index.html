@@ -50,6 +50,10 @@ li{
 }
 
 li{
+  backdrop-filter: blur(6px);
+}
+
+li{
   background:white;
   padding:16px;
   margin-bottom:14px;
@@ -312,7 +316,7 @@ li:hover{
 
 <h1>
   🛒 Список покупок 
-  <span class="version">v1.6.9</span>
+  <span class="version">v1.7.1</span>
 </h1>
 
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
@@ -475,8 +479,10 @@ function render(){
           class="amountInput"
           value="${item.amount}"
           inputmode="decimal"
+          enterkeyhint="done"
           oninput="editAmount(${index},'todo',this.value)"
           onblur="render()"
+          onkeydown="handleAmountKey(event,this)"
         />
         <button onclick="changeAmount(${index},'todo',1)">+</button>
         <span onclick="editUnit(${index},'todo')" style="cursor:pointer">${item.unit}</span>
@@ -588,6 +594,12 @@ function changeAmount(index,list,delta){
   render()
 }
 
+function handleAmountKey(e, el){
+  if(e.key === "Enter"){
+    el.blur() // закрывает клавиатуру и вызывает onblur
+  }
+}
+
 function editAmount(index,list,value){
 
   let arr = list==="todo"?todo:done
@@ -649,6 +661,12 @@ function addItem(){
   render()
 }
 
+document.getElementById("nameInput").addEventListener("keypress", function(e){
+  if(e.key === "Enter"){
+    addItem()
+  }
+})
+
 // =================== DRAG ===================
 new Sortable(document.getElementById("todoList"),{
   animation:150,
@@ -698,6 +716,23 @@ function saveEditName(index,list){
   render()
   toggleClear()
 }
+
+new Sortable(document.getElementById("todoList"),{
+  animation:150,
+
+  delay:300,
+  delayOnTouchOnly:true,
+  touchStartThreshold:5,
+
+  filter: ".amountInput", // 👈 ВАЖНО
+  preventOnFilter: false,
+
+  onEnd:function(evt){
+    let movedItem = todo.splice(evt.oldIndex,1)[0]
+    todo.splice(evt.newIndex,0,movedItem)
+    saveData()
+  }
+})
 
 </script>
 
