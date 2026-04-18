@@ -50,10 +50,6 @@ li{
 }
 
 li{
-  backdrop-filter: blur(6px);
-}
-
-li{
   background:white;
   padding:16px;
   margin-bottom:14px;
@@ -310,6 +306,11 @@ li:hover{
   opacity: 0.6;
   transform: scale(1.05);
 }
+.sortable-fallback {
+  opacity: 0.9;
+  transform: scale(1.05);
+  pointer-events: none;
+}
 
 </style>
 
@@ -321,7 +322,7 @@ li:hover{
 
 <h1>
   🛒 Список покупок 
-  <span class="version">v1.7.2</span>
+  <span class="version">v1.7.4</span>
 </h1>
 
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
