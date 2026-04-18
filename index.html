@@ -306,6 +306,11 @@ li:hover{
   transform:scale(0.85);
 }
 
+.dragging {
+  opacity: 0.6;
+  transform: scale(1.05);
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -316,7 +321,7 @@ li:hover{
 
 <h1>
   🛒 Список покупок 
-  <span class="version">v1.7.1</span>
+  <span class="version">v1.7.2</span>
 </h1>
 
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
@@ -720,12 +725,17 @@ function saveEditName(index,list){
 new Sortable(document.getElementById("todoList"),{
   animation:150,
 
-  delay:300,
+  delay:200,
   delayOnTouchOnly:true,
-  touchStartThreshold:5,
+  touchStartThreshold:8,
 
-  filter: ".amountInput", // 👈 ВАЖНО
+  fallbackOnBody:true,
+  forceFallback:true, // 👈 ВАЖНО для Android
+
+  filter: ".amountInput",
   preventOnFilter: false,
+
+  ghostClass: "dragging",
 
   onEnd:function(evt){
     let movedItem = todo.splice(evt.oldIndex,1)[0]
