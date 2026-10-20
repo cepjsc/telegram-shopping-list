@@ -4,748 +4,349 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Список покупок</title>
-
 <style>
-body{
-  font-family:Arial;
-  background:linear-gradient(180deg,#f7f7f7,#eeeeee);
-  padding:20px;
-  max-width:600px;
-  margin:0 auto;
-}
-
-input[type="checkbox"]{
-  width:18px;
-  height:18px;
-  cursor:pointer;
-}
-
-@keyframes modalShow{
-  from{
-    opacity:0;
-    transform:translateY(20px) scale(0.95);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0) scale(1);
-  }
-}
-
-h1{text-align:center;}
-ul{list-style:none; padding:0;}
-
-@keyframes fadeIn{
-  from{
-    opacity:0;
-    transform:translateY(10px);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
-}
-
-li{
-  animation:fadeIn 0.25s ease;
-}
-
-li{
-  background:white;
-  padding:16px;
-  margin-bottom:14px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  border-radius:18px;
-
-  font-size:17px;
-
-  box-shadow: 
-    0 4px 12px rgba(0,0,0,0.06),
-    0 1px 2px rgba(0,0,0,0.04);
-
-  transition: all 0.25s ease;
-}
-
-li:active{
-  transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
-
-li.moving {
-  opacity:0.5;
-  transform:translateY(10px);
-}
-
-li:hover{
-  transform:translateY(-2px);
-}
-
-.leftPart{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex:1;
-}
-
-.itemAmount{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  background:#f8f8f8;
-  padding:6px 10px;
-  border-radius:12px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.itemAmount button{
-  padding:2px 6px;
-  font-size:14px;
-  border:none;
-  background:white;
-  border-radius:6px;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.itemAmount button:active{
-  transform:scale(0.9);
-}
-
-.itemAmount span:last-child{
-  margin-left:4px;
-  font-size:13px;
-  color:#666;
-  cursor:pointer;
-}
-
-.doneText{
-  position:relative;
-  display:inline-block;
-}
-
-.doneText::after{
-  content:"";
-  position:absolute;
-  left:0;
-  top:50%;
-  width:0%;
-  height:2px;
-  background:#888;
-  transition: width 0.4s ease;
-}
-
-.doneText.animateDone::after{
-  width:100%;
-}
-
-.doneText.animateDone{
-  color:gray;
-  opacity:0.7;
-  transition: all 1.3s ease;
-}
-
-.sectionTitle{
-  margin-top:30px;
-  font-weight:bold;
-}
-
-/* кнопка + */
-.fab{
-  position:fixed;
-  bottom:25px;
-  right:25px;
-  width:65px;
-  height:65px;
-  border-radius:50%;
-  border:none;
-  font-size:34px;
-
-  background:linear-gradient(135deg,#2ecc71,#27ae60);
-  color:white;
-
-  cursor:pointer;
-
-  box-shadow:0 6px 20px rgba(46,204,113,0.4);
-  transition:0.2s;
-}
-
-.fab:active{
-  transform:scale(0.9);
-}
-
-/* модальные окна */
-.modal{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.4);
-  display:none;
-  align-items:center;
-  justify-content:center;
-}
-
-.modalContent{
-  background:white;
-  padding:20px;
-  border-radius:16px;
-  width:280px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-
-  box-shadow:0 10px 30px rgba(0,0,0,0.15);
-  animation:modalShow 0.25s ease;
-}
-
-.modalContent input,
-.modalContent select{
-  padding:10px;
-  font-size:15px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  outline:none;
-  transition:0.2s;
-}
-
-.modalContent input:focus,
-.modalContent select:focus{
-  border-color:#2ecc71;
-  box-shadow:0 0 0 2px rgba(46,204,113,0.2);
-}
-
-.modalContent button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  font-size:15px;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.modalContent button:first-of-type{
-  background:#2ecc71;
-  color:white;
-  font-weight:bold;
-}
-
-.modalContent button:last-of-type{
-  background:#eee;
-}
-
-.modalContent button:active{
-  transform:scale(0.96);
-}
-
-/* анимация синхронизации */
-@keyframes rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.syncing {
-  animation: rotate 1s linear infinite;
-}
-
-.editInput{
-  font-size:18px;
-  padding:4px 6px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-
-.editButtons{
-  display:flex;
-  gap:5px;
-}
-
-.editButtons button{
-  padding:4px 6px;
-  font-size:14px;
-}
-
-.amountInput{
-  width:40px;
-  border:none;
-  background:transparent;
-  font-size:15px;
-  text-align:center;
-  outline:none;
-  font-weight:bold;
-}
-.doneList li{
-  background:#fafafa;
-  box-shadow:none;
-}
-.version{
-  font-size:14px;
-  color:#888;
-  margin-left:6px;
-}
-
-.doneList .doneText{
-  text-decoration: line-through;
-  opacity:0.4;
-}
-
-.doneList button{
-  border:none;
-  background:none;
-  font-size:16px;
-  opacity:0.6;
-  cursor:pointer;
-}
-
-.doneList button:active{
-  transform:scale(0.85);
-}
-
-.dragging {
-  opacity: 0.6;
-  transform: scale(1.05);
-}
-.sortable-fallback {
-  opacity: 0.9;
-  transform: scale(1.05);
-  pointer-events: none;
-}
-
+body{font-family:Arial;background:linear-gradient(180deg,#f7f7f7,#eeeeee);padding:20px;max-width:600px;margin:0 auto}
+input[type="checkbox"]{width:18px;height:18px;cursor:pointer}
+@keyframes modalShow{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+h1{text-align:center}ul{list-style:none;padding:0}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+li{animation:fadeIn .25s ease;background:white;padding:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;border-radius:18px;font-size:17px;box-shadow:0 4px 12px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);transition:all .25s ease}
+li:active{transform:scale(.98);box-shadow:0 1px 4px rgba(0,0,0,.08)}li.moving{opacity:.5;transform:translateY(10px)}li:hover{transform:translateY(-2px)}
+.leftPart{display:flex;align-items:center;gap:12px;flex:1}
+.itemAmount{display:flex;align-items:center;gap:6px;background:#f8f8f8;padding:6px 10px;border-radius:12px;box-shadow:inset 0 1px 2px rgba(0,0,0,.05)}
+.itemAmount button{padding:2px 6px;font-size:14px;border:none;background:white;border-radius:6px;cursor:pointer;transition:.2s}
+.itemAmount button:active{transform:scale(.9)}.itemAmount span:last-child{margin-left:4px;font-size:13px;color:#666;cursor:pointer}
+.doneText{position:relative;display:inline-block}.doneText::after{content:"";position:absolute;left:0;top:50%;width:0%;height:2px;background:#888;transition:width .4s ease}
+.doneText.animateDone::after{width:100%}.doneText.animateDone{color:gray;opacity:.7;transition:all 1.3s ease}
+.sectionTitle{margin-top:30px;font-weight:bold}
+.fab{position:fixed;bottom:25px;right:25px;width:65px;height:65px;border-radius:50%;border:none;font-size:34px;background:linear-gradient(135deg,#2ecc71,#27ae60);color:white;cursor:pointer;box-shadow:0 6px 20px rgba(46,204,113,.4);transition:.2s}
+.fab:active{transform:scale(.9)}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center}
+.modalContent{background:white;padding:20px;border-radius:16px;width:280px;display:flex;flex-direction:column;gap:14px;box-shadow:0 10px 30px rgba(0,0,0,.15);animation:modalShow .25s ease}
+.modalContent input,.modalContent select{padding:10px;font-size:15px;border-radius:10px;border:1px solid #ddd;outline:none;transition:.2s}
+.modalContent input:focus,.modalContent select:focus{border-color:#2ecc71;box-shadow:0 0 0 2px rgba(46,204,113,.2)}
+.modalContent button{padding:10px;border:none;border-radius:10px;font-size:15px;cursor:pointer;transition:.2s}
+.modalContent button:first-of-type{background:#2ecc71;color:white;font-weight:bold}.modalContent button:last-of-type{background:#eee}.modalContent button:active{transform:scale(.96)}
+@keyframes rotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.syncing{animation:rotate 1s linear infinite}
+.editInput{font-size:18px;padding:4px 6px;border-radius:6px;border:1px solid #ccc}
+.editButtons{display:flex;gap:5px}.editButtons button{padding:4px 6px;font-size:14px}
+.amountInput{width:40px;border:none;background:transparent;font-size:15px;text-align:center;outline:none;font-weight:bold}
+.doneList li{background:#fafafa;box-shadow:none}.version{font-size:14px;color:#888;margin-left:6px}
+.doneList .doneText{text-decoration:line-through;opacity:.4}
+.doneList button{border:none;background:none;font-size:16px;opacity:.6;cursor:pointer}.doneList button:active{transform:scale(.85)}
+.dragging{opacity:.6;transform:scale(1.05)}.sortable-fallback{opacity:.9;transform:scale(1.05);pointer-events:none}
+#syncStatus{font-size:12px;color:#777;line-height:1.3;text-align:right;max-width:220px}
 </style>
-
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
 </head>
-
 <body>
-
-<h1>
-  🛒 Список покупок 
-  <span class="version">v1.7.4</span>
-</h1>
-
+<h1>🛒 Список покупок <span class="version">v1.7.5</span></h1>
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
-
-  <div style="position:relative; flex-grow:1; max-width:250px;">
-    <input 
-      id="searchInput"
-      placeholder="🔍 Поиск..."
-      oninput="render();toggleClear()"
-      style="width:100%;padding:8px 30px 8px 10px;font-size:15px;border-radius:8px;border:1px solid #ccc;"
-    >
-    <span 
-      id="clearSearch"
-      onclick="clearSearch()"
-      style="position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:#888;display:none;"
-    >✖</span>
+  <div style="position:relative;flex-grow:1;max-width:250px;">
+    <input id="searchInput" placeholder="🔍 Поиск..." oninput="render();toggleClear()" style="width:100%;padding:8px 30px 8px 10px;font-size:15px;border-radius:8px;border:1px solid #ccc;">
+    <span id="clearSearch" onclick="clearSearch()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:#888;display:none;">✖</span>
   </div>
-
-  <div id="syncContainer" style="margin-left:auto; cursor:pointer;" onclick="manualSync()">
-    <span id="syncIcon" style="display:inline-block; font-size:20px;">🔄</span>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="manualSync()" title="Синхронизировать">
+    <span id="syncIcon" style="display:inline-block;font-size:20px;">🔄</span>
+    <span id="syncStatus">Проверка данных…</span>
   </div>
-
 </div>
-
-<div class="sectionTitle">🧺 Нужно купить</div>
-<ul id="todoList"></ul>
-
-<div class="sectionTitle">✅ Куплено</div>
-<ul id="doneList" class="doneList"></ul>
-
+<div class="sectionTitle">🧺 Нужно купить</div><ul id="todoList"></ul>
+<div class="sectionTitle">✅ Куплено</div><ul id="doneList" class="doneList"></ul>
 <button class="fab" onclick="openModal()">+</button>
-
-<div class="modal" id="modal">
-  <div class="modalContent">
-  <div style="font-weight:bold; font-size:16px; text-align:center;">
-    ➕ Новый товар
-  </div>
-    <input id="nameInput" placeholder="Название товара">
-    <div style="display:flex; gap:8px;">
-      <input id="amountInput" type="number" placeholder="Кол-во" style="flex:1;">
-      <select id="unitInput" style="width:80px;">
-        <option value="шт">шт</option>
-        <option value="кг">кг</option>
-        <option value="г">г</option>
-        <option value="л">л</option>
-        <option value="уп">уп</option>
-      </select>
-    </div>
-
-    <div style="display:flex; gap:10px; margin-top:10px;">
-      <button onclick="addItem()" style="flex:1;">Добавить</button>
-      <button onclick="closeModal()" style="flex:1;">Отмена</button>
-    </div>
-  </div> 
-</div>
-
-<div class="modal" id="unitModal">
-  <div class="modalContent">
-    <b>Выберите единицу</b>
-    <button onclick="setUnit('шт')">шт</button>
-    <button onclick="setUnit('кг')">кг</button>
-    <button onclick="setUnit('г')">г</button>
-    <button onclick="setUnit('л')">л</button>
-    <button onclick="setUnit('уп')">уп</button>
-    <button onclick="closeUnitModal()">Отмена</button>
-  </div>
-</div>
+<div class="modal" id="modal"><div class="modalContent">
+  <div style="font-weight:bold;font-size:16px;text-align:center;">➕ Новый товар</div>
+  <input id="nameInput" placeholder="Название товара">
+  <div style="display:flex;gap:8px;"><input id="amountInput" type="number" placeholder="Кол-во" style="flex:1;"><select id="unitInput" style="width:80px;"><option value="шт">шт</option><option value="кг">кг</option><option value="г">г</option><option value="л">л</option><option value="уп">уп</option></select></div>
+  <div style="display:flex;gap:10px;margin-top:10px;"><button onclick="addItem()" style="flex:1;">Добавить</button><button onclick="closeModal()" style="flex:1;">Отмена</button></div>
+</div></div>
+<div class="modal" id="unitModal"><div class="modalContent">
+  <b>Выберите единицу</b><button onclick="setUnit('шт')">шт</button><button onclick="setUnit('кг')">кг</button><button onclick="setUnit('г')">г</button><button onclick="setUnit('л')">л</button><button onclick="setUnit('уп')">уп</button><button onclick="closeUnitModal()">Отмена</button>
+</div></div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec"
+const API_URL = "https://script.google.com/macros/s/AKfycbxS1TAlGtBXdksEppy27IksJfLF8L02M-OV7v6rR8MbgRfFJXxrAj2WDtUEo9nQWevV/exec";
+const CACHE_KEY = "shopping_list_cache_v1";
+const LEGACY_CACHE_KEY = "shopping_cache";
 
-let editUnitIndex=null
-let editUnitList=null
-let todo=[]
-let done=[]
-let searchText=""
+let editUnitIndex=null, editUnitList=null;
+let todo=[], done=[], searchText="";
+let pendingSync=false;
+let localRevision=0;
+let syncInProgress=false;
+let syncRequested=false;
+let syncTimer=null;
+let isLoading=true;
 
-// =================== ЗАГРУЗКА ===================
-async function loadData(){
+function validItems(items){
+  if(!Array.isArray(items)) return [];
+  return items.filter(i=>i && typeof i.name==="string" && i.name.trim()!=="")
+    .map(i=>({name:i.name, amount:(Number(i.amount)>0?Number(i.amount):1), unit:(typeof i.unit==="string" && i.unit?i.unit:"шт")}));
+}
 
-  const icon = document.getElementById("syncIcon");
-  icon.classList.add("syncing");
-
+function readCache(){
   try{
+    let raw=localStorage.getItem(CACHE_KEY);
+    if(!raw) raw=localStorage.getItem(LEGACY_CACHE_KEY);
+    if(!raw) return null;
+    const data=JSON.parse(raw);
+    if(!data || !Array.isArray(data.todo) || !Array.isArray(data.done)) return null;
+    return {
+      todo:validItems(data.todo),
+      done:validItems(data.done),
+      pendingSync:!!data.pendingSync,
+      lastSync:Number(data.lastSync)||0,
+      savedAt:Number(data.savedAt)||0
+    };
+  }catch(e){ console.log("Не удалось прочитать кэш",e); return null; }
+}
 
-    let res = await fetch(API_URL)
-    let data = await res.json()
-
-    todo = (data.todo || []).filter(i=>i && i.name)
-    done = (data.done || []).filter(i=>i && i.name)
-
-    render()
-    toggleClear()
-
+function writeCache(){
+  try{
+    localStorage.setItem(CACHE_KEY,JSON.stringify({
+      todo,done,pendingSync,lastSync,savedAt:Date.now()
+    }));
+    return true;
   }catch(e){
-
-    console.log("Ошибка загрузки",e)
-
-  } finally {
-
-    icon.classList.remove("syncing");
-
+    console.log("Не удалось сохранить кэш",e);
+    setStatus("⚠️ Не удалось сохранить кэш");
+    return false;
   }
 }
 
-function manualSync(){ loadData() }
-
-// =================== СОХРАНЕНИЕ ===================
-async function saveData(){
+let lastSync=0;
+function setStatus(text, spinning=false){
+  const status=document.getElementById("syncStatus");
+  const icon=document.getElementById("syncIcon");
+  if(status) status.textContent=text;
+  if(icon) icon.classList.toggle("syncing",!!spinning);
+}
+function formatTime(timestamp){
+  if(!timestamp) return "";
+  return new Date(timestamp).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+}
+function showSyncedStatus(){
+  setStatus(lastSync ? "☁️ Синхр. "+formatTime(lastSync) : "☁️ Синхронизировано");
+}
+function applyData(data){
+  todo=validItems(data.todo);
+  done=validItems(data.done);
+}
+function scheduleSync(delay=900){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>syncWithServer(),delay);
+}
+async function loadData(){
+  const cached=readCache();
+  if(cached){
+    todo=cached.todo; done=cached.done;
+    pendingSync=cached.pendingSync; lastSync=cached.lastSync;
+    render(); toggleClear();
+    if(pendingSync) setStatus("⏳ Ждут отправки");
+    else if(!navigator.onLine) setStatus("📡 Оффлайн · кэш");
+    else showSyncedStatus();
+  }else{
+    setStatus(navigator.onLine ? "🔄 Загрузка…" : "📡 Нет интернета");
+  }
+  isLoading=false;
+  if(!navigator.onLine){
+    if(!cached) setStatus("📡 Нет интернета");
+    return;
+  }
+  await syncWithServer({initial:true, hadCache:!!cached});
+}
+function manualSync(){
+  if(!navigator.onLine){ setStatus("📡 Оффлайн · кэш сохранён"); return; }
+  syncWithServer({manual:true});
+}
+async function syncWithServer(options={}){
+  if(syncInProgress){ syncRequested=true; return; }
+  if(!navigator.onLine){ setStatus(pendingSync?"⏳ Ждут интернет":"📡 Оффлайн · кэш сохранён"); return; }
+  syncInProgress=true;
+  const startingRevision=localRevision;
+  setStatus(pendingSync?"⏳ Отправка изменений…":"🔄 Синхронизация…",true);
   try{
-    await fetch(API_URL,{
-      method:"POST",
-      body:JSON.stringify({todo:todo, done:done})
-    })
-  }catch(e){ console.log("Ошибка сохранения", e) }
+    if(pendingSync){
+      const snapshot={todo:JSON.parse(JSON.stringify(todo)),done:JSON.parse(JSON.stringify(done))};
+      const response=await fetch(API_URL,{method:"POST",body:JSON.stringify(snapshot)});
+      if(!response.ok) throw new Error("HTTP "+response.status);
+      if(localRevision===startingRevision){
+        pendingSync=false;
+        lastSync=Date.now();
+        writeCache();
+        showSyncedStatus();
+      }else{
+        writeCache();
+        setStatus("⏳ Отправка новых изменений…");
+        syncRequested=true;
+      }
+    }else{
+      const response=await fetch(API_URL,{method:"GET",cache:"no-store"});
+      if(!response.ok) throw new Error("HTTP "+response.status);
+      const data=await response.json();
+      if(!data || !Array.isArray(data.todo) || !Array.isArray(data.done)) throw new Error("Некорректный ответ сервера");
+      if(localRevision===startingRevision && !pendingSync){
+        applyData(data);
+        lastSync=Date.now();
+        writeCache();
+        render(); toggleClear();
+        showSyncedStatus();
+      }else{
+        // Пользователь изменил список во время загрузки: не заменяем его серверными данными.
+        pendingSync=true;
+        writeCache();
+        scheduleSync(100);
+      }
+    }
+  }catch(e){
+    console.log("Ошибка синхронизации",e);
+    if(pendingSync) setStatus("⏳ Изменения ждут интернет");
+    else setStatus("📡 Сервер недоступен · кэш");
+  }finally{
+    syncInProgress=false;
+    if(syncRequested){
+      syncRequested=false;
+      if(navigator.onLine) scheduleSync(100);
+    }
+  }
 }
 
-// =================== ПОИСК ===================
-function clearSearch(){
-  document.getElementById("searchInput").value=""
-  toggleClear()
-  render()
+function saveData(){
+  localRevision++;
+  pendingSync=true;
+  writeCache(); // Сначала сохраняем локально, до сетевого запроса.
+  setStatus(navigator.onLine?"⏳ Сохранено · отправка…":"⏳ Сохранено офлайн");
+  scheduleSync(900);
 }
 
+window.addEventListener("online",()=>{
+  setStatus("🔄 Интернет появился…",true);
+  syncWithServer();
+});
+window.addEventListener("offline",()=>{
+  setStatus(pendingSync?"⏳ Изменения ждут интернет":"📡 Оффлайн · кэш сохранён");
+});
+window.addEventListener("pagehide",()=>{ writeCache(); });
+
+function clearSearch(){document.getElementById("searchInput").value="";toggleClear();render();}
 function toggleClear(){
-  let input=document.getElementById("searchInput").value
-  let btn=document.getElementById("clearSearch")
-  btn.style.display = input.length>0 ? "block" : "none"
+  const input=document.getElementById("searchInput").value;
+  document.getElementById("clearSearch").style.display=input.length>0?"block":"none";
 }
-
-// =================== РЕНДЕР ===================
+function escapeHtml(value){
+  return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
 function render(){
-
-  searchText = document.getElementById("searchInput").value.toLowerCase()
-
-  const todoList=document.getElementById("todoList")
-  const doneList=document.getElementById("doneList")
-
-  todoList.innerHTML=""
-  doneList.innerHTML=""
-
-  // Активные
+  const searchInput=document.getElementById("searchInput");
+  searchText=(searchInput?searchInput.value:"").toLowerCase();
+  const todoList=document.getElementById("todoList"), doneList=document.getElementById("doneList");
+  todoList.innerHTML=""; doneList.innerHTML="";
   todo.forEach((item,index)=>{
-
-    if(searchText && !(item.name || "").toLowerCase().includes(searchText)) return
-
-    const li=document.createElement("li")
-    li.dataset.index=index
-
-    li.innerHTML = `
-      <div class="leftPart">
-        <input type="checkbox" onchange="completeItem(this)">
-        <span class="doneText" onclick="startEditName(${index},'todo',this)">
-        ${item.name}
-        </span>
-      </div>
-      <span class="itemAmount">
-        <button onclick="changeAmount(${index},'todo',-1)">-</button>
-        <input 
-          class="amountInput"
-          value="${item.amount}"
-          inputmode="decimal"
-          enterkeyhint="done"
-          oninput="editAmount(${index},'todo',this.value)"
-          onblur="render()"
-          onkeydown="handleAmountKey(event,this)"
-        />
-        <button onclick="changeAmount(${index},'todo',1)">+</button>
-        <span onclick="editUnit(${index},'todo')" style="cursor:pointer">${item.unit}</span>
-      </span>
-    `
-
-    todoList.appendChild(li)
-  })
-
-
-  // Завершенные
+    if(searchText && !item.name.toLowerCase().includes(searchText)) return;
+    const li=document.createElement("li"); li.dataset.index=index;
+    li.innerHTML=`<div class="leftPart"><input type="checkbox" onchange="completeItem(this)"><span class="doneText" onclick="startEditName(${index},'todo',this)">${escapeHtml(item.name)}</span></div>
+      <span class="itemAmount"><button onclick="changeAmount(${index},'todo',-1)">-</button>
+      <input class="amountInput" value="${escapeHtml(item.amount)}" inputmode="decimal" enterkeyhint="done" oninput="editAmount(${index},'todo',this.value)" onblur="finishAmountEdit()" onkeydown="handleAmountKey(event,this)">
+      <button onclick="changeAmount(${index},'todo',1)">+</button><span onclick="editUnit(${index},'todo')" style="cursor:pointer">${escapeHtml(item.unit)}</span></span>`;
+    todoList.appendChild(li);
+  });
   done.forEach((item,index)=>{
-
-    if(searchText && !(item.name || "").toLowerCase().includes(searchText)) return
-
-    const li=document.createElement("li")
-    li.dataset.index=index
-
-    li.innerHTML=`
-      <div class="leftPart">
-        <input type="checkbox" checked onchange="undoItem(this)">
-        <span class="doneText" onclick="startEditName(${index},'done',this)">
-        ${item.name}
-        </span>
-      </div>
-      <span class="itemAmount">
-        ${item.amount}
-        <span onclick="editUnit(${index},'done')" style="cursor:pointer">${item.unit}</span>
-      </span>
-      <button onclick="deleteDone(${index})">❌</button>
-    `
-
-    doneList.appendChild(li)
-  })
-
+    if(searchText && !item.name.toLowerCase().includes(searchText)) return;
+    const li=document.createElement("li"); li.dataset.index=index;
+    li.innerHTML=`<div class="leftPart"><input type="checkbox" checked onchange="undoItem(this)"><span class="doneText" onclick="startEditName(${index},'done',this)">${escapeHtml(item.name)}</span></div>
+      <span class="itemAmount">${escapeHtml(item.amount)}<span onclick="editUnit(${index},'done')" style="cursor:pointer">${escapeHtml(item.unit)}</span></span><button onclick="deleteDone(${index})">❌</button>`;
+    doneList.appendChild(li);
+  });
 }
-
-// =================== АНИМАЦИЯ ПЕРЕНОСА ===================
 function completeItem(el){
-
-  const li = el.closest("li")
-  const index = Number(li.dataset.index)
-  const text = li.querySelector(".doneText")
-
-  // 1. запускаем зачеркивание
-  text.classList.add("animateDone")
-
-  // 2. чуть ждём, потом движение
+  const li=el.closest("li"), index=Number(li.dataset.index), text=li.querySelector(".doneText");
+  text.classList.add("animateDone");
+  setTimeout(()=>li.classList.add("moving"),400);
   setTimeout(()=>{
-    li.classList.add("moving")
-  },400)
-
-  // 3. перенос
-  setTimeout(()=>{
-    done.unshift(todo[index])
-    todo.splice(index,1)
-    saveData()
-    render()
-  },700)
+    if(!todo[index]) return;
+    done.unshift(todo[index]); todo.splice(index,1);
+    saveData(); render();
+  },700);
 }
-
 function undoItem(el){
-
-  const li = el.closest("li")
-  const index = Number(li.dataset.index)
-
-  li.classList.add("moving")
-
+  const li=el.closest("li"),index=Number(li.dataset.index);
+  li.classList.add("moving");
   setTimeout(()=>{
-    todo.unshift(done[index])
-    done.splice(index,1)
-    saveData()
-    render()
-  },300)
+    if(!done[index]) return;
+    todo.unshift(done[index]); done.splice(index,1);
+    saveData(); render();
+  },300);
 }
-
-// =================== ПРОЧЕЕ ===================
-function deleteDone(index){
-  done.splice(index,1)
-  saveData()
-  render()
-}
-
+function deleteDone(index){done.splice(index,1);saveData();render();}
 function changeAmount(index,list,delta){
-
-  let arr = list==="todo"?todo:done
-
-  let current = parseFloat(arr[index].amount) || 0
-
-  let step
-
-  if(delta > 0){
-    // увеличение
-    step = current < 1 ? 0.5 : 1
-  } else {
-    // уменьшение
-    step = current > 1 ? 1 : 0.5
-  }
-
-  let newValue = current + (delta * step)
-
-  if(newValue < 0.5) newValue = 0.5
-
-  newValue = Math.round(newValue * 10) / 10
-
-  arr[index].amount = newValue
-
-  saveData()
-  render()
+  const arr=list==="todo"?todo:done;
+  let current=parseFloat(arr[index].amount)||0;
+  const step=delta>0?(current<1?.5:1):(current>1?1:.5);
+  let newValue=current+(delta*step);
+  if(newValue<.5)newValue=.5;
+  arr[index].amount=Math.round(newValue*10)/10;
+  saveData();render();
 }
-
-function handleAmountKey(e, el){
-  if(e.key === "Enter"){
-    el.blur() // закрывает клавиатуру и вызывает onblur
-  }
-}
-
+function handleAmountKey(e,el){if(e.key==="Enter"){e.preventDefault();el.blur();}}
 function editAmount(index,list,value){
-
-  let arr = list==="todo"?todo:done
-
-  value = value.replace(",", ".")
-
-  let num = parseFloat(value)
-
-  if(!isNaN(num) && num > 0){
-    arr[index].amount = num
-    saveData()
+  const arr=list==="todo"?todo:done;
+  const num=parseFloat(String(value).replace(",","."));
+  if(!Number.isNaN(num)&&num>0){
+    arr[index].amount=num;
+    saveData();
   }
 }
-
-// =================== ЕДИНИЦЫ ===================
-function editUnit(index,list){
-  editUnitIndex=index
-  editUnitList=list
-  document.getElementById("unitModal").style.display="flex"
-}
-
+function finishAmountEdit(){render();}
+function editUnit(index,list){editUnitIndex=index;editUnitList=list;document.getElementById("unitModal").style.display="flex";}
 function setUnit(unit){
-  let arr = editUnitList==="todo"?todo:done
-  arr[editUnitIndex].unit=unit
-  saveData()
-  render()
-  closeUnitModal()
+  const arr=editUnitList==="todo"?todo:done;
+  if(arr[editUnitIndex]){arr[editUnitIndex].unit=unit;saveData();render();}
+  closeUnitModal();
 }
-
-function closeUnitModal(){
-  document.getElementById("unitModal").style.display="none"
-}
-
-// =================== ДОБАВЛЕНИЕ ===================
-function openModal(){
-  document.getElementById("modal").style.display="flex"
-  setTimeout(()=>{document.getElementById("nameInput").focus()},100)
-}
-
-function closeModal(){
-  document.getElementById("modal").style.display="none"
-}
-
+function closeUnitModal(){document.getElementById("unitModal").style.display="none";}
+function openModal(){document.getElementById("modal").style.display="flex";setTimeout(()=>document.getElementById("nameInput").focus(),100);}
+function closeModal(){document.getElementById("modal").style.display="none";}
 function addItem(){
-  let name=document.getElementById("nameInput").value.trim()
-  let amount=document.getElementById("amountInput").value
-  let unit=document.getElementById("unitInput").value
-
-  if(name==="") return
-  if(amount==="") amount=1
-
-  todo.unshift({name:name, amount:Number(amount), unit:unit})
-
-  saveData()
-
-  document.getElementById("nameInput").value=""
-  document.getElementById("amountInput").value=""
-  closeModal()
-  render()
+  const name=document.getElementById("nameInput").value.trim();
+  let amount=document.getElementById("amountInput").value;
+  const unit=document.getElementById("unitInput").value;
+  if(name==="")return;
+  if(amount==="")amount=1;
+  const parsedAmount=Number(amount);
+  todo.unshift({name,amount:parsedAmount>0?parsedAmount:1,unit});
+  saveData();
+  document.getElementById("nameInput").value="";
+  document.getElementById("amountInput").value="";
+  closeModal();render();
 }
-
-document.getElementById("nameInput").addEventListener("keypress", function(e){
-  if(e.key === "Enter"){
-    addItem()
-  }
-})
-
-// =================== DRAG ===================
-new Sortable(document.getElementById("todoList"),{
-  animation:150,
-
-  delay:300,                 // удержание 300 мс
-  delayOnTouchOnly:true,     // только на телефоне
-  touchStartThreshold:5,     // защита от случайного движения
-
-  onEnd:function(evt){
-    let movedItem = todo.splice(evt.oldIndex,1)[0]
-    todo.splice(evt.newIndex,0,movedItem)
-    saveData()
-  }
-})
-
-// =================== СТАРТ ===================
-loadData()
-
+document.getElementById("nameInput").addEventListener("keypress",e=>{if(e.key==="Enter")addItem();});
 function startEditName(index,list,element){
-
-  let arr = list==="todo"?todo:done
-  let oldName = arr[index].name
-
-  const parent = element.parentElement
-
-  parent.innerHTML = `
-    <input class="editInput" id="editField" value="${oldName}">
-    <div class="editButtons">
-      <button onclick="saveEditName(${index},'${list}')">✔</button>
-      <button onclick="render()">✖</button>
-    </div>
-  `
-
-  document.getElementById("editField").focus()
+  const arr=list==="todo"?todo:done,oldName=arr[index].name,parent=element.parentElement;
+  parent.innerHTML=`<input class="editInput" id="editField" value="${escapeHtml(oldName)}"><div class="editButtons"><button onclick="saveEditName(${index},'${list}')">✔</button><button onclick="render()">✖</button></div>`;
+  const field=document.getElementById("editField");field.focus();
+  field.addEventListener("keydown",e=>{if(e.key==="Enter")saveEditName(index,list);if(e.key==="Escape")render();});
 }
-
 function saveEditName(index,list){
-
-  let arr = list==="todo"?todo:done
-  let value = document.getElementById("editField").value.trim()
-
-  if(value!==""){
-    arr[index].name = value
-    saveData()
-  }
-
-  render()
-  toggleClear()
+  const arr=list==="todo"?todo:done,field=document.getElementById("editField"),value=field.value.trim();
+  if(value!==""&&arr[index]){arr[index].name=value;saveData();}
+  render();toggleClear();
 }
-
-new Sortable(document.getElementById("todoList"),{
-  animation:150,
-
-  delay:200,
-  delayOnTouchOnly:true,
-  touchStartThreshold:8,
-
-  fallbackOnBody:true,
-  forceFallback:true, // 👈 ВАЖНО для Android
-
-  filter: ".amountInput",
-  preventOnFilter: false,
-
-  ghostClass: "dragging",
-
-  onEnd:function(evt){
-    let movedItem = todo.splice(evt.oldIndex,1)[0]
-    todo.splice(evt.newIndex,0,movedItem)
-    saveData()
-  }
-})
-
+function setupSortable(){
+  if(typeof Sortable==="undefined"){setStatus("⚠️ Не загрузился модуль сортировки");return;}
+  new Sortable(document.getElementById("todoList"),{
+    animation:150,delay:200,delayOnTouchOnly:true,touchStartThreshold:8,
+    fallbackOnBody:true,forceFallback:true,filter:".amountInput",preventOnFilter:false,ghostClass:"dragging",
+    onEnd:function(evt){
+      if(evt.oldIndex==null||evt.newIndex==null||evt.oldIndex===evt.newIndex)return;
+      const movedItem=todo.splice(evt.oldIndex,1)[0];
+      if(movedItem)todo.splice(evt.newIndex,0,movedItem);
+      saveData();
+    }
+  });
+}
+setupSortable();
+loadData();
 </script>
-
 </body>
 </html>
