@@ -41,7 +41,7 @@ li:active{transform:scale(.98);box-shadow:0 1px 4px rgba(0,0,0,.08)}li.moving{op
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
-<h1>🛒 Список покупок <span class="version">v1.7.5</span></h1>
+<h1>🛒 Список покупок <span class="version">v1.7.6</span></h1>
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 20px 0;">
   <div style="position:relative;flex-grow:1;max-width:250px;">
     <input id="searchInput" placeholder="🔍 Поиск..." oninput="render();toggleClear()" style="width:100%;padding:8px 30px 8px 10px;font-size:15px;border-radius:8px;border:1px solid #ccc;">
@@ -220,14 +220,65 @@ function saveData(){
   scheduleSync(900);
 }
 
-window.addEventListener("online",()=>{
-  setStatus("🔄 Интернет появился…",true);
-  syncWithServer();
+
+let lastForegroundSyncAt = 0;
+let foregroundSyncTimer = null;
+
+function syncOnForeground() {
+  if (document.visibilityState !== "visible") return;
+
+  if (!navigator.onLine) {
+    setStatus(
+      pendingSync
+        ? "⏳ Изменения ждут интернет"
+        : "📡 Оффлайн · кэш сохранён"
+    );
+    return;
+  }
+
+  // Не запускаем повторную проверку,
+  // если несколько событий пришли почти одновременно.
+  const now = Date.now();
+
+  if (now - lastForegroundSyncAt < 2500) return;
+
+  lastForegroundSyncAt = now;
+
+  clearTimeout(foregroundSyncTimer);
+
+  foregroundSyncTimer = setTimeout(() => {
+    syncWithServer({ foreground: true });
+  }, 150);
+}
+
+window.addEventListener("online", () => {
+  setStatus("🔄 Интернет появился…", true);
+  syncWithServer({ online: true });
 });
-window.addEventListener("offline",()=>{
-  setStatus(pendingSync?"⏳ Изменения ждут интернет":"📡 Оффлайн · кэш сохранён");
+
+window.addEventListener("offline", () => {
+  setStatus(
+    pendingSync
+      ? "⏳ Изменения ждут интернет"
+      : "📡 Оффлайн · кэш сохранён"
+  );
 });
-window.addEventListener("pagehide",()=>{ writeCache(); });
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    syncOnForeground();
+  }
+});
+
+window.addEventListener("pageshow", () => {
+  syncOnForeground();
+});
+
+window.addEventListener("pagehide", () => {
+  clearTimeout(foregroundSyncTimer);
+  writeCache();
+});
+
 
 function clearSearch(){document.getElementById("searchInput").value="";toggleClear();render();}
 function toggleClear(){
